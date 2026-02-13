@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div id="breadcrumb" class="breadcrumb">
+    <span class="crumb" onclick="loadPath('')">Home</span>
+</div>
+
+<div id="file-list" class="file-list">
+    <!-- File items will be injected here by JS -->
+    <div class="loading">Loading...</div>
+</div>
+{% endblock %}

@@ -1,0 +1,232 @@
+:root {
+    --bg-color: #fafafa;
+    --text-color: #000;
+    --card-bg: #fff;
+    --border-color: #000;
+    --border-width: 3px;
+    --shadow: 4px 4px 0px 0px #000;
+
+    /* Vibrant Palette */
+    --c-yellow: #FFEB3B;
+    --c-pink: #FF90E8;
+    --c-cyan: #00E5FF;
+    --c-lime: #00FF00;
+    --c-orange: #FF5722;
+
+    --font-main: 'Space Grotesk', sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    background-image: radial-gradient(#000 1px, transparent 0);
+    background-size: 20px 20px;
+    /* Dotted pattern */
+    color: var(--text-color);
+    font-family: var(--font-main);
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    background-color: var(--c-yellow);
+    border: var(--border-width) solid var(--border-color);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: var(--shadow);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -2px;
+    color: var(--text-color);
+    text-shadow: 2px 2px 0px #fff;
+}
+
+/* Chunky Breadcrumbs */
+.breadcrumb {
+    margin-bottom: 2rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-weight: 700;
+}
+
+.crumb {
+    background: var(--card-bg);
+    border: var(--border-width) solid var(--border-color);
+    padding: 0.5rem 1rem;
+    box-shadow: 2px 2px 0px 0px #000;
+    cursor: pointer;
+    transition: all 0.1s;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+.crumb:hover {
+    background-color: var(--c-cyan);
+    transform: translate(-1px, -1px);
+    box-shadow: 4px 4px 0px 0px #000;
+}
+
+.crumb:active {
+    transform: translate(1px, 1px);
+    box-shadow: 1px 1px 0px 0px #000;
+}
+
+.crumb.active {
+    background-color: var(--c-pink);
+    cursor: default;
+    pointer-events: none;
+}
+
+.crumb.home-crumb {
+    background-color: var(--c-lime);
+}
+
+.separator {
+    display: none;
+    /* Hide slash separators in block style */
+}
+
+/* File Grid */
+.file-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+.file-card {
+    background: var(--card-bg);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.1s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Dynamic colors will be added via JS classes, but define defaults */
+.file-card.color-0 {
+    background-color: #fff;
+}
+
+.file-card.color-1 {
+    background-color: #e0f7fa;
+}
+
+/* Light Cyan */
+.file-card.color-2 {
+    background-color: #fce4ec;
+}
+
+/* Light Pink */
+.file-card.color-3 {
+    background-color: #f9fbe7;
+}
+
+/* Light Lime */
+.file-card.color-4 {
+    background-color: #fff3e0;
+}
+
+/* Light Orange */
+
+.file-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 8px 8px 0px 0px #000;
+    /* On hover, switch to the vibrant version of the color */
+}
+
+.file-card.color-1:hover {
+    background-color: var(--c-cyan);
+}
+
+.file-card.color-2:hover {
+    background-color: var(--c-pink);
+}
+
+.file-card.color-3:hover {
+    background-color: var(--c-lime);
+}
+
+.file-card.color-4:hover {
+    background-color: var(--c-orange);
+}
+
+.file-card:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px #000;
+}
+
+.icon {
+    font-size: 2.5rem;
+    filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.2));
+}
+
+.file-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.file-name {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    font-size: 1.2rem;
+    margin-bottom: 0.2rem;
+}
+
+.file-meta {
+    font-size: 0.8rem;
+    color: #444;
+    font-family: 'Space Mono', monospace;
+    /* Use monospaced font for data */
+    font-weight: 700;
+    background: #000;
+    color: #fff;
+    padding: 2px 6px;
+    display: inline-block;
+    /* transform: rotate(-2deg); */
+    /* Maybe too much? */
+}
+
+.loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem;
+    font-weight: 700;
+    font-size: 2rem;
+    border: var(--border-width) solid var(--border-color);
+    background-color: var(--c-cyan);
+    box-shadow: var(--shadow);
+    animation: pulse 1s infinite alternate;
+}
+
+@keyframes pulse {
+    from {
+        transform: scale(1);
+    }
+
+    to {
+        transform: scale(1.02);
+    }
+}
