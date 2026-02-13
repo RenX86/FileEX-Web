@@ -16,6 +16,16 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
+# Middleware to block write operations
+@app.middleware("http")
+async def read_only_middleware(request: Request, call_next):
+    if settings.READ_ONLY and request.method not in ["GET", "HEAD", "OPTIONS"]:
+        # Allow static files or specific exceptions if needed, but for strict mode, block all.
+        from fastapi.responses import JSONResponse
+        return JSONResponse(status_code=405, content={"detail": "Method Not Allowed: Server is in Read-Only Mode"})
+    response = await call_next(request)
+    return response
+
 # Mount static files (CSS, JS, Images)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 

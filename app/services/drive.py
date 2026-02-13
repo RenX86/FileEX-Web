@@ -56,9 +56,14 @@ class DriveService:
         if not path:
              return DriveService.get_drives()
         
-        # Security check: prevent directory traversal if needed, 
-        # but for a local file explorer, we usually want full access.
-        # However, we must ensure the path exists.
+        # Security Check
+        from app.core.config import settings
+        path_norm = os.path.normpath(path).lower() # Case-insensitive check for Windows
+        
+        for restricted in settings.RESTRICTED_PATHS:
+            restricted_norm = os.path.normpath(restricted).lower()
+            if path_norm == restricted_norm or path_norm.startswith(restricted_norm + os.sep):
+                 raise PermissionError(f"Access to {path} is restricted.")
         if not os.path.exists(path):
             raise FileNotFoundError(f"Path not found: {path}")
             
