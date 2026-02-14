@@ -5,6 +5,7 @@ const breadcrumbContainer = document.getElementById('breadcrumb');
 // Supported media extensions (single source of truth)
 const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico'];
 const VIDEO_EXTS = ['mp4', 'webm', 'ogg', 'mov', 'mkv', 'avi'];
+const ARCHIVE_EXTS = ['zip', 'tar', 'gz', 'bz2', '7z', 'rar'];
 
 let currentPath = '';
 
@@ -67,7 +68,14 @@ function renderItems(items) {
             const viewUrl = `/api/files/thumbnail?path=${encodeURIComponent(item.path)}`;
             iconContent = `<img src="${viewUrl}" class="file-thumbnail" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.parentNode.innerHTML='📄'">`;
         } else {
-            iconContent = item.is_dir ? (item.type === 'drive' ? '💿' : '📁') : '📄';
+            const fileExt = item.name.split('.').pop().toLowerCase();
+            if (fileExt === 'pdf') {
+                iconContent = '📕';
+            } else if (ARCHIVE_EXTS.includes(fileExt)) {
+                iconContent = '📦';
+            } else {
+                iconContent = item.is_dir ? (item.type === 'drive' ? '💿' : '📁') : '📄';
+            }
         }
 
         card.innerHTML = `
@@ -109,9 +117,170 @@ function handleItemClick(item) {
                     Your browser does not support the video tag.
                 </video>`;
             modal.style.display = 'flex'; // Use flex for centering
+        } else if (ext === 'pdf') {
+            mediaContainer.innerHTML = `
+                <iframe src="${viewUrl}" style="width:80vw; height:85vh; border:none; background:#fff;"></iframe>`;
+            modal.style.display = 'flex';
+        } else if (ARCHIVE_EXTS.includes(ext)) {
+            openArchiveViewer(item);
         } else {
             alert(`FILE: ${escapeHtml(item.name)}\nSIZE: ${item.stats ? item.stats.total : item.size}`);
         }
+    }
+}
+
+async function openArchiveViewer(item) {
+    const mediaContainer = document.getElementById('media-container');
+    const modal = document.getElementById('media-modal');
+
+    mediaContainer.innerHTML = '<div class="loading">READING ARCHIVE...</div>';
+    modal.style.display = 'flex';
+
+    try {
+        const url = `${API_BASE}/archive?path=${encodeURIComponent(item.path)}`;
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || 'Failed to read archive');
+        }
+
+        const data = await response.json();
+        renderArchiveTable(data, item.path);
+
+    } catch (error) {
+        mediaContainer.innerHTML = `<div class="loading" style="background:var(--c-pink); color:#000;">ERROR: ${escapeHtml(error.message)}</div>`;
+    }
+}
+
+function renderArchiveTable(data, archivePath) {
+    const mediaContainer = document.getElementById('media-container');
+    const previewableExts = [...IMAGE_EXTS, ...VIDEO_EXTS, 'pdf'];
+    const escapedPath = archivePath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    const mediaCount = data.entries.filter(e => {
+        const ext = e.name.split('.').pop().toLowerCase();
+        return !e.is_dir && [...IMAGE_EXTS, ...VIDEO_EXTS].includes(ext);
+    }).length;
+    const galleryBtn = mediaCount > 0 ? `<button class="archive-mode-btn active">📋 LIST</button><button class="archive-mode-btn" onclick="renderArchiveGallery(document.getElementById('media-container')._archiveData, document.getElementById('media-container')._archivePath)">🖼️ GALLERY (${mediaCount})</button>` : '';
+
+    let html = `
+        <div class="archive-viewer">
+            <div class="archive-header">
+                <h2>📦 ${escapeHtml(data.filename)}</h2>
+                <div class="archive-header-actions">
+                    ${galleryBtn}
+                    <span class="archive-stats">${data.total_dirs} folders · ${data.total_files} files</span>
+                </div>
+            </div>
+            <div class="archive-table-wrap">
+                <table class="archive-table">
+                    <thead>
+                        <tr><th>Name</th><th>Size</th><th>Compressed</th></tr>
+                    </thead>
+                    <tbody>`;
+
+    for (const entry of data.entries) {
+        const entryExt = entry.name.split('.').pop().toLowerCase();
+        const isPreviewable = !entry.is_dir && previewableExts.includes(entryExt);
+        const icon = entry.is_dir ? '📁' : (isPreviewable ? '👁️' : '📄');
+        const clickClass = isPreviewable ? 'archive-previewable' : '';
+        const clickAttr = isPreviewable
+            ? `onclick="previewArchiveEntry('${archivePath.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${entry.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')"`
+            : '';
+
+        html += `
+            <tr class="${entry.is_dir ? 'archive-dir' : ''} ${clickClass}" ${clickAttr}>
+                <td>${icon} ${escapeHtml(entry.name)}</td>
+                <td>${entry.size_fmt}</td>
+                <td>${entry.compressed_fmt}</td>
+            </tr>`;
+    }
+
+    html += `</tbody></table></div></div>`;
+    mediaContainer.innerHTML = html;
+
+    // Store archive data for back navigation
+    mediaContainer._archiveData = data;
+    mediaContainer._archivePath = archivePath;
+}
+
+function renderArchiveGallery(data, archivePath) {
+    const mediaContainer = document.getElementById('media-container');
+    const escapedPath = archivePath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+    const mediaEntries = data.entries.filter(e => {
+        const ext = e.name.split('.').pop().toLowerCase();
+        return !e.is_dir && [...IMAGE_EXTS, ...VIDEO_EXTS].includes(ext);
+    });
+
+    let html = `
+        <div class="archive-viewer archive-gallery-mode">
+            <div class="archive-header">
+                <h2>📦 ${escapeHtml(data.filename)}</h2>
+                <div class="archive-header-actions">
+                    <button class="archive-mode-btn" onclick="renderArchiveTable(document.getElementById('media-container')._archiveData, document.getElementById('media-container')._archivePath)">📋 LIST</button>
+                    <button class="archive-mode-btn active">🖼️ GALLERY (${mediaEntries.length})</button>
+                    <span class="archive-stats">${mediaEntries.length} media</span>
+                </div>
+            </div>
+            <div class="archive-gallery-wrap">
+                <div class="archive-gallery-feed">`;
+
+    for (const entry of mediaEntries) {
+        const ext = entry.name.split('.').pop().toLowerCase();
+        const viewUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entry.name)}`;
+        const isVideo = VIDEO_EXTS.includes(ext);
+        const shortName = entry.name.split('/').pop();
+
+        html += `
+            ${isVideo
+                ? `<div class="archive-feed-item archive-feed-video-item" onclick="playFeedVideo(this, event)">
+                <video src="${viewUrl}" muted preload="metadata" class="archive-feed-media"></video>
+                <div class="archive-gallery-play">▶</div>
+                <div class="archive-feed-label">${escapeHtml(shortName)}</div>
+               </div>`
+                : `<div class="archive-feed-item" onclick="previewArchiveEntry('${escapedPath}', '${entry.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')">
+                <img src="${viewUrl}" alt="${escapeHtml(shortName)}" class="archive-feed-media" loading="lazy">
+                <div class="archive-feed-label">${escapeHtml(shortName)}</div>
+               </div>`}`;
+    }
+
+    html += `</div></div></div>`;
+    mediaContainer.innerHTML = html;
+
+    mediaContainer._archiveData = data;
+    mediaContainer._archivePath = archivePath;
+}
+
+function playFeedVideo(container, event) {
+    event.stopPropagation();
+    const video = container.querySelector('video');
+    const playBtn = container.querySelector('.archive-gallery-play');
+    if (playBtn) playBtn.style.display = 'none';
+    video.controls = true;
+    video.muted = false;
+    video.play();
+}
+
+function previewArchiveEntry(archivePath, entryName) {
+    const mediaContainer = document.getElementById('media-container');
+    const ext = entryName.split('.').pop().toLowerCase();
+    const viewUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entryName)}`;
+
+    const backBtn = `<div class="archive-back-bar">
+        <button onclick="renderArchiveTable(document.getElementById('media-container')._archiveData, document.getElementById('media-container')._archivePath)" class="archive-back-btn">← BACK TO ARCHIVE</button>
+        <span class="archive-preview-name">${escapeHtml(entryName)}</span>
+    </div>`;
+
+    if (IMAGE_EXTS.includes(ext)) {
+        mediaContainer.innerHTML = `${backBtn}<img src="${viewUrl}" alt="${escapeHtml(entryName)}" style="max-width:100%; max-height:75vh; display:block; background:#000;">`;
+    } else if (VIDEO_EXTS.includes(ext)) {
+        mediaContainer.innerHTML = `${backBtn}
+            <video controls autoplay muted playsinline style="max-width:100%; max-height:75vh; background:#000;">
+                <source src="${viewUrl}" type="video/${ext === 'mov' ? 'mp4' : ext}">
+            </video>`;
+    } else if (ext === 'pdf') {
+        mediaContainer.innerHTML = `${backBtn}<iframe src="${viewUrl}" style="width:80vw; height:75vh; border:none; background:#fff;"></iframe>`;
     }
 }
 

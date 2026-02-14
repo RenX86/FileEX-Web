@@ -7,7 +7,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from PIL import Image
 import io
 from app.utils.security import validate_path
-from app.core.constants import IMAGE_EXTENSIONS
+from app.core.constants import IMAGE_EXTENSIONS, ARCHIVE_EXTENSIONS
 
 router = APIRouter()
 
@@ -40,7 +40,7 @@ async def list_files(path: Optional[str] = Query(None)):
 @router.get("/view")
 async def view_file(path: str = Query(...)):
     """
-    Stream a file for viewing (e.g., images, videos).
+    Stream a file for viewing (e.g., images, videos, PDFs).
     """
     try:
         validate_path(path)
@@ -81,12 +81,139 @@ async def get_thumbnail(path: str = Query(...)):
             return StreamingResponse(buf, media_type=f"image/{format.lower()}")
         except Exception as e:
             print(f"Thumbnail generation failed: {e}")
-            # If thumbnail fails, maybe client handles it. 
-            # Or we could return a default icon? 
-            # Raising 500 allows client to fallback (onerror).
             raise HTTPException(status_code=500, detail="Failed to generate thumbnail")
 
     except PermissionError:
         raise HTTPException(status_code=403, detail="Permission denied")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/archive")
+async def list_archive(path: str = Query(...)):
+    """
+    List the contents of an archive file (zip, tar, gz, bz2).
+    """
+    try:
+        validate_path(path)
+
+        if not os.path.isfile(path):
+            raise HTTPException(status_code=404, detail="File not found")
+
+        ext = path.split('.')[-1].lower()
+        # Handle compound extensions like .tar.gz, .tar.bz2
+        basename = os.path.basename(path).lower()
+
+        entries = []
+
+        if ext == 'zip':
+            import zipfile
+            if not zipfile.is_zipfile(path):
+                raise HTTPException(status_code=400, detail="Not a valid zip file")
+            with zipfile.ZipFile(path, 'r') as zf:
+                for info in zf.infolist():
+                    entries.append({
+                        "name": info.filename,
+                        "size": info.file_size,
+                        "compressed": info.compress_size,
+                        "is_dir": info.is_dir(),
+                    })
+
+        elif basename.endswith('.tar.gz') or basename.endswith('.tar.bz2') or ext in ('tar', 'gz', 'bz2'):
+            import tarfile
+            try:
+                with tarfile.open(path, 'r:*') as tf:
+                    for member in tf.getmembers():
+                        entries.append({
+                            "name": member.name,
+                            "size": member.size,
+                            "compressed": member.size,
+                            "is_dir": member.isdir(),
+                        })
+            except tarfile.TarError:
+                raise HTTPException(status_code=400, detail="Not a valid tar archive")
+
+        elif ext == '7z':
+            raise HTTPException(status_code=400, detail="7z format requires py7zr library (not installed)")
+
+        elif ext == 'rar':
+            raise HTTPException(status_code=400, detail="RAR format requires rarfile library (not installed)")
+
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported archive format")
+
+        # Sort: directories first, then files, both alphabetical
+        entries.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
+
+        from app.utils.formatters import format_size
+        for entry in entries:
+            entry["size_fmt"] = format_size(entry["size"]) if not entry["is_dir"] else "-"
+            entry["compressed_fmt"] = format_size(entry["compressed"]) if not entry["is_dir"] else "-"
+
+        return {
+            "filename": os.path.basename(path),
+            "total_files": sum(1 for e in entries if not e["is_dir"]),
+            "total_dirs": sum(1 for e in entries if e["is_dir"]),
+            "entries": entries
+        }
+
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to read archive: {str(e)}")
+
+
+@router.get("/archive/view")
+async def view_archive_entry(path: str = Query(...), entry: str = Query(...)):
+    """
+    Extract and stream a single file from inside an archive (zip or tar).
+    Used for previewing images/videos within archives.
+    """
+    import mimetypes as mt
+
+    try:
+        validate_path(path)
+
+        if not os.path.isfile(path):
+            raise HTTPException(status_code=404, detail="Archive not found")
+
+        ext = path.split('.')[-1].lower()
+        basename = os.path.basename(path).lower()
+        data = None
+        content_type = mt.guess_type(entry)[0] or "application/octet-stream"
+
+        if ext == 'zip':
+            import zipfile
+            if not zipfile.is_zipfile(path):
+                raise HTTPException(status_code=400, detail="Not a valid zip file")
+            with zipfile.ZipFile(path, 'r') as zf:
+                if entry not in zf.namelist():
+                    raise HTTPException(status_code=404, detail="Entry not found in archive")
+                data = zf.read(entry)
+
+        elif basename.endswith('.tar.gz') or basename.endswith('.tar.bz2') or ext in ('tar', 'gz', 'bz2'):
+            import tarfile
+            try:
+                with tarfile.open(path, 'r:*') as tf:
+                    member = tf.getmember(entry)
+                    f = tf.extractfile(member)
+                    if f is None:
+                        raise HTTPException(status_code=400, detail="Cannot extract this entry (directory or link)")
+                    data = f.read()
+            except KeyError:
+                raise HTTPException(status_code=404, detail="Entry not found in archive")
+            except tarfile.TarError:
+                raise HTTPException(status_code=400, detail="Not a valid tar archive")
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported archive format")
+
+        return StreamingResponse(io.BytesIO(data), media_type=content_type)
+
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to extract file: {str(e)}")
