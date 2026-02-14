@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FileEX — Login</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=10">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        .login-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 80vh;
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: var(--shadow);
+            padding: 3rem;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .login-card p {
+            font-size: 0.9rem;
+            color: #555;
+            margin-bottom: 2rem;
+        }
+
+        .pin-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 2rem;
+            font-family: var(--font-main);
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.5rem;
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: 2px 2px 0px 0px #000;
+            outline: none;
+            background: var(--bg-color);
+            box-sizing: border-box;
+        }
+
+        .pin-input:focus {
+            background: var(--c-yellow);
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.2rem;
+            font-family: var(--font-main);
+            font-weight: 700;
+            text-transform: uppercase;
+            background: var(--c-lime);
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: 4px 4px 0px 0px #000;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            transition: all 0.1s;
+        }
+
+        .login-btn:hover {
+            transform: translate(-2px, -2px);
+            box-shadow: 6px 6px 0px 0px #000;
+        }
+
+        .login-btn:active {
+            transform: translate(2px, 2px);
+            box-shadow: 2px 2px 0px 0px #000;
+        }
+
+        .error-msg {
+            background: var(--c-orange);
+            color: #fff;
+            font-weight: 700;
+            padding: 0.75rem;
+            border: var(--border-width) solid var(--border-color);
+            box-shadow: 2px 2px 0px 0px #000;
+            margin-bottom: 1.5rem;
+            animation: shake 0.3s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-8px);
+            }
+
+            75% {
+                transform: translateX(8px);
+            }
+        }
+
+        .lock-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            filter: drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.3));
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
+            <h1>FileEX</h1>
+            <span
+                style="background:var(--border-color); color:var(--bg-color); padding:5px 10px; font-weight:bold; font-size:0.8rem; border-radius:4px;">LOCKED</span>
+        </div>
+    </header>
+
+    <main class="container">
+        <div class="login-wrapper">
+            <div class="login-card">
+                <div class="lock-icon">🔒</div>
+                <h2>Enter PIN</h2>
+                <p>This file explorer is protected. Enter the access PIN to continue.</p>
+
+                {% if error %}
+                <div class="error-msg">{{ error }}</div>
+                {% endif %}
+
+                <form method="POST" action="/login">
+                    <input type="password" name="pin" class="pin-input" placeholder="• • • •" maxlength="20" autofocus
+                        required>
+                    <button type="submit" class="login-btn">UNLOCK →</button>
+                </form>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

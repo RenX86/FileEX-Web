@@ -16,7 +16,7 @@ def validate_path(path: str) -> None:
         if path_norm == restricted_norm or path_norm.startswith(restricted_norm + os.sep):
             raise PermissionError(f"Access to {path} is restricted.")
 
-    # Additional safety check for traversal (though normpath helps)
-    if ".." in path_norm:
-         # Basic check, OS handles most resolution but good to be explicit
-         pass
+    # Resolve to real absolute path to catch symlinks and traversal
+    resolved = os.path.normpath(os.path.realpath(path)).lower()
+    if resolved != path_norm:
+        raise PermissionError(f"Access to {path} is restricted (path traversal detected).")

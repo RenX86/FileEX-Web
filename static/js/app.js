@@ -4,6 +4,13 @@ const breadcrumbContainer = document.getElementById('breadcrumb');
 
 let currentPath = '';
 
+// Sanitize strings before injecting into innerHTML to prevent XSS
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {
     loadPath('');
@@ -55,7 +62,7 @@ function renderItems(items) {
 
         if (!item.is_dir && imageExts.includes(ext)) {
             const viewUrl = `/api/files/thumbnail?path=${encodeURIComponent(item.path)}`;
-            iconContent = `<img src="${viewUrl}" class="file-thumbnail" alt="${item.name}" loading="lazy" onerror="this.onerror=null;this.parentNode.innerHTML='📄'">`;
+            iconContent = `<img src="${viewUrl}" class="file-thumbnail" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.parentNode.innerHTML='📄'">`;
         } else {
             iconContent = item.is_dir ? (item.type === 'drive' ? '💿' : '📁') : '📄';
         }
@@ -63,7 +70,7 @@ function renderItems(items) {
         card.innerHTML = `
             <div class="icon">${iconContent}</div>
             <div class="file-info">
-                <span class="file-name" title="${item.name}">${item.name}</span>
+                <span class="file-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
                 <div class="file-meta">
                     ${item.stats ? `${item.stats.free} free of ${item.stats.total}` : (item.size && item.size !== '-' ? item.size : (item.type === 'drive' ? 'DRIVE' : (item.is_dir ? 'DIR' : '')))}
                 </div>
@@ -88,7 +95,7 @@ function handleItemClick(item) {
         const viewUrl = `/api/files/view?path=${encodeURIComponent(item.path)}`;
 
         if (imageExts.includes(ext)) {
-            mediaContainer.innerHTML = `<img src="${viewUrl}" alt="${item.name}">`;
+            mediaContainer.innerHTML = `<img src="${viewUrl}" alt="${escapeHtml(item.name)}">`;
             modal.style.display = 'flex'; // Use flex for centering
         } else if (videoExts.includes(ext)) {
             let mimeType = `video/${ext}`;
@@ -102,7 +109,7 @@ function handleItemClick(item) {
                 </video>`;
             modal.style.display = 'flex'; // Use flex for centering
         } else {
-            alert(`FILE: ${item.name}\nSIZE: ${item.stats ? item.stats.total : item.size}`);
+            alert(`FILE: ${escapeHtml(item.name)}\nSIZE: ${item.stats ? item.stats.total : item.size}`);
         }
     }
 }

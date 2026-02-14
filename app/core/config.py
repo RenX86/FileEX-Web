@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     """
     APP_NAME: str = "FileEX"
     DEBUG: bool = True
+    SECRET_KEY: str = "change_this_to_a_secure_random_string"
+    ACCESS_PIN: str = "1234"
     
     # Security: Paths that are strictly forbidden
     RESTRICTED_PATHS: list = [
