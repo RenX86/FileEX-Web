@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from PIL import Image
 import io
 from app.utils.security import validate_path
+from app.core.constants import IMAGE_EXTENSIONS
 
 router = APIRouter()
 
@@ -64,7 +65,7 @@ async def get_thumbnail(path: str = Query(...)):
         
         # Verify it's an image extension
         ext = path.split('.')[-1].lower()
-        if ext not in ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico']:
+        if ext not in IMAGE_EXTENSIONS:
              raise HTTPException(status_code=400, detail="Not a supported image type")
 
         # Open image

@@ -2,6 +2,10 @@ const API_BASE = '/api/files';
 const listContainer = document.getElementById('file-list');
 const breadcrumbContainer = document.getElementById('breadcrumb');
 
+// Supported media extensions (single source of truth)
+const IMAGE_EXTS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico'];
+const VIDEO_EXTS = ['mp4', 'webm', 'ogg', 'mov', 'mkv', 'avi'];
+
 let currentPath = '';
 
 // Sanitize strings before injecting into innerHTML to prevent XSS
@@ -56,11 +60,10 @@ function renderItems(items) {
         card.className = `file-card ${colorClass}`;
         card.onclick = () => handleItemClick(item);
 
-        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico'];
         const ext = item.name.split('.').pop().toLowerCase();
         let iconContent;
 
-        if (!item.is_dir && imageExts.includes(ext)) {
+        if (!item.is_dir && IMAGE_EXTS.includes(ext)) {
             const viewUrl = `/api/files/thumbnail?path=${encodeURIComponent(item.path)}`;
             iconContent = `<img src="${viewUrl}" class="file-thumbnail" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.parentNode.innerHTML='📄'">`;
         } else {
@@ -87,17 +90,15 @@ function handleItemClick(item) {
     } else {
         // Check for media types
         const ext = item.name.split('.').pop().toLowerCase();
-        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico'];
-        const videoExts = ['mp4', 'webm', 'ogg', 'mov', 'mkv', 'avi'];
 
         const mediaContainer = document.getElementById('media-container');
         const modal = document.getElementById('media-modal');
         const viewUrl = `/api/files/view?path=${encodeURIComponent(item.path)}`;
 
-        if (imageExts.includes(ext)) {
+        if (IMAGE_EXTS.includes(ext)) {
             mediaContainer.innerHTML = `<img src="${viewUrl}" alt="${escapeHtml(item.name)}">`;
             modal.style.display = 'flex'; // Use flex for centering
-        } else if (videoExts.includes(ext)) {
+        } else if (VIDEO_EXTS.includes(ext)) {
             let mimeType = `video/${ext}`;
             if (ext === 'mov') mimeType = 'video/mp4'; // Try mp4 for mov
             if (ext === 'mkv') mimeType = 'video/webm'; // Try webm for mkv (often works)

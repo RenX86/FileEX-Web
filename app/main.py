@@ -1,8 +1,5 @@
-import sys
 import os
-
-# Add parent directory to path to allow running as script
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
@@ -14,6 +11,9 @@ from app.core.config import settings
 
 from app.api.router import api_router
 from app.api.endpoints import auth
+
+# Resolve project root for static/template paths (works from any CWD)
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -61,10 +61,10 @@ app.add_middleware(SecurityMiddleware)
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 # Mount static files (CSS, JS, Images)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 
 # Templates
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
 # Include Auth routes (at root level, not under /api)
 app.include_router(auth.router)
