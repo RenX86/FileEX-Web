@@ -57,13 +57,9 @@ class DriveService:
              return DriveService.get_drives()
         
         # Security Check
-        from app.core.config import settings
-        path_norm = os.path.normpath(path).lower() # Case-insensitive check for Windows
-        
-        for restricted in settings.RESTRICTED_PATHS:
-            restricted_norm = os.path.normpath(restricted).lower()
-            if path_norm == restricted_norm or path_norm.startswith(restricted_norm + os.sep):
-                 raise PermissionError(f"Access to {path} is restricted.")
+        from app.utils.security import validate_path
+        validate_path(path)
+
         if not os.path.exists(path):
             raise FileNotFoundError(f"Path not found: {path}")
             

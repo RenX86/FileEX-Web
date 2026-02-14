@@ -49,10 +49,19 @@ function renderItems(items) {
         card.className = `file-card ${colorClass}`;
         card.onclick = () => handleItemClick(item);
 
-        const icon = item.is_dir ? (item.type === 'drive' ? '💿' : '📁') : '📄';
+        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico'];
+        const ext = item.name.split('.').pop().toLowerCase();
+        let iconContent;
+
+        if (!item.is_dir && imageExts.includes(ext)) {
+            const viewUrl = `/api/files/thumbnail?path=${encodeURIComponent(item.path)}`;
+            iconContent = `<img src="${viewUrl}" class="file-thumbnail" alt="${item.name}" loading="lazy" onerror="this.onerror=null;this.parentNode.innerHTML='📄'">`;
+        } else {
+            iconContent = item.is_dir ? (item.type === 'drive' ? '💿' : '📁') : '📄';
+        }
 
         card.innerHTML = `
-            <div class="icon">${icon}</div>
+            <div class="icon">${iconContent}</div>
             <div class="file-info">
                 <span class="file-name" title="${item.name}">${item.name}</span>
                 <div class="file-meta">
@@ -69,7 +78,47 @@ function handleItemClick(item) {
     if (item.is_dir) {
         loadPath(item.path);
     } else {
-        alert(`FILE: ${item.name}\nSIZE: ${item.size}`);
+        // Check for media types
+        const ext = item.name.split('.').pop().toLowerCase();
+        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'ico'];
+        const videoExts = ['mp4', 'webm', 'ogg', 'mov', 'mkv', 'avi'];
+
+        const mediaContainer = document.getElementById('media-container');
+        const modal = document.getElementById('media-modal');
+        const viewUrl = `/api/files/view?path=${encodeURIComponent(item.path)}`;
+
+        if (imageExts.includes(ext)) {
+            mediaContainer.innerHTML = `<img src="${viewUrl}" alt="${item.name}">`;
+            modal.style.display = 'flex'; // Use flex for centering
+        } else if (videoExts.includes(ext)) {
+            let mimeType = `video/${ext}`;
+            if (ext === 'mov') mimeType = 'video/mp4'; // Try mp4 for mov
+            if (ext === 'mkv') mimeType = 'video/webm'; // Try webm for mkv (often works)
+
+            mediaContainer.innerHTML = `
+                <video controls autoplay muted playsinline style="max-width:100%; max-height:80vh;">
+                    <source src="${viewUrl}" type="${mimeType}">
+                    Your browser does not support the video tag.
+                </video>`;
+            modal.style.display = 'flex'; // Use flex for centering
+        } else {
+            alert(`FILE: ${item.name}\nSIZE: ${item.stats ? item.stats.total : item.size}`);
+        }
+    }
+}
+
+function closeModal() {
+    const modal = document.getElementById('media-modal');
+    const mediaContainer = document.getElementById('media-container');
+    modal.style.display = 'none';
+    mediaContainer.innerHTML = ''; // Stop video playback
+}
+
+// Close modal when clicking outside
+window.onclick = function (event) {
+    const modal = document.getElementById('media-modal');
+    if (event.target === modal) {
+        closeModal();
     }
 }
 

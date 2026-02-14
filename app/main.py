@@ -16,6 +16,16 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
+# Ensure mimetypes are known
+import mimetypes
+mimetypes.init()
+mimetypes.add_type('video/mp4', '.mp4')
+mimetypes.add_type('video/webm', '.webm')
+mimetypes.add_type('video/ogg', '.ogg')
+mimetypes.add_type('video/quicktime', '.mov')
+mimetypes.add_type('video/x-matroska', '.mkv')
+mimetypes.add_type('video/x-msvideo', '.avi')
+
 # Middleware to block write operations
 @app.middleware("http")
 async def read_only_middleware(request: Request, call_next):
