@@ -58,7 +58,7 @@ function renderItems(items) {
         const colorIndex = (index % 4) + 1;
         const colorClass = `color-${colorIndex}`;
 
-        card.className = `file-card ${colorClass}`;
+        card.className = `file-card ${colorClass}${item.type === 'drive' ? ' drive-card' : ''}`;
         card.onclick = () => handleItemClick(item);
 
         const ext = item.name.split('.').pop().toLowerCase();
@@ -88,8 +88,14 @@ function renderItems(items) {
             </div>
         `;
 
+        card.style.animationDelay = `${index * 30}ms`;
         listContainer.appendChild(card);
     });
+
+    // Show recent files strip on home page (when showing drives)
+    if (items.length > 0 && items[0].type === 'drive') {
+        renderRecentFiles();
+    }
 }
 
 function handleItemClick(item) {
@@ -105,7 +111,9 @@ function handleItemClick(item) {
 
         if (IMAGE_EXTS.includes(ext)) {
             mediaContainer.innerHTML = `<img src="${viewUrl}" alt="${escapeHtml(item.name)}">`;
-            modal.style.display = 'flex'; // Use flex for centering
+            modal.style.display = 'flex';
+            document.body.classList.add('modal-open');
+            addRecentFile(item);
         } else if (VIDEO_EXTS.includes(ext)) {
             let mimeType = `video/${ext}`;
             if (ext === 'mov') mimeType = 'video/mp4'; // Try mp4 for mov
@@ -116,15 +124,18 @@ function handleItemClick(item) {
                     <source src="${viewUrl}" type="${mimeType}">
                     Your browser does not support the video tag.
                 </video>`;
-            modal.style.display = 'flex'; // Use flex for centering
+            modal.style.display = 'flex';
+            document.body.classList.add('modal-open');
+            addRecentFile(item);
         } else if (ext === 'pdf') {
             mediaContainer.innerHTML = `
                 <iframe src="${viewUrl}" style="width:80vw; height:85vh; border:none; background:#fff;"></iframe>`;
             modal.style.display = 'flex';
+            document.body.classList.add('modal-open');
         } else if (ARCHIVE_EXTS.includes(ext)) {
             openArchiveViewer(item);
         } else {
-            alert(`FILE: ${escapeHtml(item.name)}\nSIZE: ${item.stats ? item.stats.total : item.size}`);
+            showToast(`📄 ${item.name} — Preview not supported`);
         }
     }
 }
@@ -135,6 +146,7 @@ async function openArchiveViewer(item) {
 
     mediaContainer.innerHTML = '<div class="loading">READING ARCHIVE...</div>';
     modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
 
     try {
         const url = `${API_BASE}/archive?path=${encodeURIComponent(item.path)}`;
@@ -288,7 +300,104 @@ function closeModal() {
     const modal = document.getElementById('media-modal');
     const mediaContainer = document.getElementById('media-container');
     modal.style.display = 'none';
-    mediaContainer.innerHTML = ''; // Stop video playback
+    mediaContainer.innerHTML = '';
+    document.body.classList.remove('modal-open');
+}
+
+function showToast(message) {
+    const existing = document.querySelector('.file-toast');
+    if (existing) existing.remove();
+    const toast = document.createElement('div');
+    toast.className = 'file-toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// Recent files — stored in localStorage
+function addRecentFile(item) {
+    const ext = item.name.split('.').pop().toLowerCase();
+    const isImage = IMAGE_EXTS.includes(ext);
+    const isVideo = VIDEO_EXTS.includes(ext);
+    if (!isImage && !isVideo) return;
+
+    let recent = JSON.parse(localStorage.getItem('recentFiles') || '[]');
+    // Remove duplicate if exists
+    recent = recent.filter(r => r.path !== item.path);
+    // Add to front
+    recent.unshift({ name: item.name, path: item.path, isImage, isVideo });
+    // Keep max 20
+    if (recent.length > 20) recent = recent.slice(0, 20);
+    localStorage.setItem('recentFiles', JSON.stringify(recent));
+}
+
+function renderRecentFiles() {
+    const recent = JSON.parse(localStorage.getItem('recentFiles') || '[]');
+    if (recent.length === 0) return;
+
+    // Remove existing section if any
+    const existing = document.querySelector('.recent-files-section');
+    if (existing) existing.remove();
+
+    const section = document.createElement('div');
+    section.className = 'recent-files-section';
+
+    let thumbsHtml = '';
+    for (const file of recent) {
+        const thumbUrl = file.isImage
+            ? `/api/files/thumbnail?path=${encodeURIComponent(file.path)}`
+            : '';
+        const shortName = file.name.split('/').pop().split('\\').pop();
+        const escapedPath = file.path.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
+        thumbsHtml += `
+            <div class="recent-file-thumb" onclick="openRecentFile('${escapedPath}', '${shortName.replace(/'/g, "\\'")}')" title="${escapeHtml(shortName)}">
+                ${file.isImage
+                ? `<img src="${thumbUrl}" alt="${escapeHtml(shortName)}" loading="lazy">`
+                : `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:2rem;background:#222;">🎬</div>`}
+                <div class="recent-file-name">${escapeHtml(shortName)}</div>
+            </div>`;
+    }
+
+    section.innerHTML = `
+        <div class="recent-files-header">
+            <span class="recent-files-title">🕑 Recently Viewed</span>
+            <button class="recent-files-clear" onclick="clearRecentFiles()">CLEAR</button>
+        </div>
+        <div class="recent-files-strip">${thumbsHtml}</div>
+    `;
+
+    // Insert before the file list
+    listContainer.parentNode.insertBefore(section, listContainer);
+}
+
+function clearRecentFiles() {
+    localStorage.removeItem('recentFiles');
+    const section = document.querySelector('.recent-files-section');
+    if (section) section.remove();
+}
+
+function openRecentFile(filePath, fileName) {
+    const ext = fileName.split('.').pop().toLowerCase();
+    const viewUrl = `/api/files/view?path=${encodeURIComponent(filePath)}`;
+    const mediaContainer = document.getElementById('media-container');
+    const modal = document.getElementById('media-modal');
+
+    if (IMAGE_EXTS.includes(ext)) {
+        mediaContainer.innerHTML = `<img src="${viewUrl}" alt="${escapeHtml(fileName)}">`;
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+    } else if (VIDEO_EXTS.includes(ext)) {
+        let mimeType = `video/${ext}`;
+        if (ext === 'mov') mimeType = 'video/mp4';
+        if (ext === 'mkv') mimeType = 'video/webm';
+        mediaContainer.innerHTML = `
+            <video controls autoplay muted playsinline style="max-width:100%; max-height:80vh;">
+                <source src="${viewUrl}" type="${mimeType}">
+            </video>`;
+        modal.style.display = 'flex';
+        document.body.classList.add('modal-open');
+    }
 }
 
 // Close modal when clicking outside
@@ -298,6 +407,16 @@ window.onclick = function (event) {
         closeModal();
     }
 }
+
+// Close modal with Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        const modal = document.getElementById('media-modal');
+        if (modal && modal.style.display !== 'none') {
+            closeModal();
+        }
+    }
+});
 
 function updateBreadcrumbs(path) {
     if (!path) {

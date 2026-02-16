@@ -46,7 +46,12 @@ async def view_file(path: str = Query(...)):
         validate_path(path)
         if not os.path.isfile(path):
             raise HTTPException(status_code=404, detail="File not found")
-        return FileResponse(path)
+        stat = os.stat(path)
+        return FileResponse(
+            path,
+            stat_result=stat,
+            headers={"Cache-Control": "public, max-age=3600"}  # Cache 1 hour
+        )
     except PermissionError:
         raise HTTPException(status_code=403, detail="Permission denied")
     except Exception as e:
@@ -78,7 +83,11 @@ async def get_thumbnail(path: str = Query(...)):
             img.save(buf, format=format)
             buf.seek(0)
             
-            return StreamingResponse(buf, media_type=f"image/{format.lower()}")
+            return StreamingResponse(
+                buf,
+                media_type=f"image/{format.lower()}",
+                headers={"Cache-Control": "public, max-age=86400"}  # Cache 1 day
+            )
         except Exception as e:
             print(f"Thumbnail generation failed: {e}")
             raise HTTPException(status_code=500, detail="Failed to generate thumbnail")

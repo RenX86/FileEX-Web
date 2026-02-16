@@ -7,6 +7,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import RedirectResponse, JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.gzip import GZipMiddleware
 from app.core.config import settings
 
 from app.api.router import api_router
@@ -55,10 +56,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         return response
 
 
-# Middleware stack (LIFO): SecurityMiddleware runs AFTER SessionMiddleware in the stack
-# So session is available when SecurityMiddleware accesses request.session
+# Middleware stack (LIFO order)
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
+app.add_middleware(GZipMiddleware, minimum_size=500)  # Compress responses > 500 bytes
 
 # Mount static files (CSS, JS, Images)
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
