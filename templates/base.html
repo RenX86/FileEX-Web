@@ -5,8 +5,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FileEX{% endblock %}</title>
-    <link rel="stylesheet" href="/static/css/style.css?v=18">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="/static/css/style.css?v=22">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <script>
+        // Apply theme immediately to prevent flash
+        (function () {
+            const t = localStorage.getItem('theme') || 'light';
+            if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        })();
+    </script>
 </head>
 
 <body>
@@ -14,6 +24,7 @@
         <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
             <h1>FileEX</h1>
             <div style="display:flex; gap:10px; align-items:center;">
+                <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" id="theme-btn">🌙</button>
                 <span class="header-badge header-badge--mode">READ ONLY</span>
                 <a href="/logout" class="header-badge header-badge--logout">LOGOUT</a>
             </div>
@@ -33,10 +44,31 @@
     </main>
 
     <footer class="site-footer">
-        FileEX · Local Network File Explorer
+        FileEX &middot; Local Network File Explorer &middot; v2.0
     </footer>
 
-    <script src="/static/js/app.js?v=9"></script>
+    <script src="/static/js/app.js?v=11"></script>
+    <script>
+        function toggleTheme() {
+            const html = document.documentElement;
+            const current = html.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            if (next === 'dark') {
+                html.setAttribute('data-theme', 'dark');
+            } else {
+                html.removeAttribute('data-theme');
+            }
+            localStorage.setItem('theme', next);
+            updateThemeBtn();
+        }
+
+        function updateThemeBtn() {
+            const btn = document.getElementById('theme-btn');
+            if (btn) btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+        }
+
+        updateThemeBtn();
+    </script>
 </body>
 
 </html>

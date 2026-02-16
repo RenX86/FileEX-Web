@@ -5,7 +5,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FileEX — Login</title>
-    <link rel="stylesheet" href="/static/css/style.css?v=18">
+    <link rel="stylesheet" href="/static/css/style.css?v=22">
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+    <script>
+        (function () {
+            const t = localStorage.getItem('theme') || 'light';
+            if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        })();
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         .login-wrapper {
@@ -138,6 +145,45 @@
             .lock-icon {
                 font-size: 3rem;
             }
+        }
+
+        /* Dark mode overrides for login */
+        [data-theme="dark"] .login-card {
+            background: var(--card-bg);
+        }
+
+        [data-theme="dark"] .login-card p {
+            color: #aaa;
+        }
+
+        [data-theme="dark"] .pin-input {
+            color: #000;
+            background: var(--bg-color);
+            border-color: var(--border-color);
+            box-shadow: 2px 2px 0px 0px #222;
+        }
+
+        [data-theme="dark"] .pin-input:focus {
+            background: var(--c-yellow);
+            color: #000;
+        }
+
+        [data-theme="dark"] .login-btn {
+            color: #000;
+            border-color: var(--border-color);
+            box-shadow: 4px 4px 0px 0px #222;
+        }
+
+        [data-theme="dark"] .login-btn:hover {
+            box-shadow: 6px 6px 0px 0px #222;
+        }
+
+        [data-theme="dark"] .login-btn:active {
+            box-shadow: 2px 2px 0px 0px #222;
+        }
+
+        [data-theme="dark"] .error-msg {
+            box-shadow: 2px 2px 0px 0px #222;
         }
     </style>
 </head>

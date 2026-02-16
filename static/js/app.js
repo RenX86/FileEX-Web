@@ -47,15 +47,14 @@ function renderItems(items) {
     listContainer.innerHTML = '';
 
     if (items.length === 0) {
-        listContainer.innerHTML = '<div class="loading" style="background:#fff;">FOLDER IS EMPTY</div>';
+        listContainer.innerHTML = '<div class="loading" style="background:var(--card-bg);color:var(--text-color);">📂 NO FILES HERE</div>';
         return;
     }
 
     items.forEach((item, index) => {
         const card = document.createElement('div');
-        // Randomly assign a color class (1-4) or 0 for white
-        // Use index to determinstically assign colors so they don't jump around on re-render
-        const colorIndex = (index % 4) + 1;
+        // Cycle through 5 color variants (1-5)
+        const colorIndex = (index % 5) + 1;
         const colorClass = `color-${colorIndex}`;
 
         card.className = `file-card ${colorClass}${item.type === 'drive' ? ' drive-card' : ''}`;
@@ -78,14 +77,56 @@ function renderItems(items) {
             }
         }
 
+        // Determine meta badge class based on file type
+        let metaClass = 'file-meta';
+        if (item.type === 'drive') metaClass += ' file-meta--drive';
+        else if (item.is_dir) metaClass += ' file-meta--dir';
+        else if (IMAGE_EXTS.includes(ext)) metaClass += ' file-meta--image';
+        else if (VIDEO_EXTS.includes(ext)) metaClass += ' file-meta--video';
+        else if (ARCHIVE_EXTS.includes(ext)) metaClass += ' file-meta--archive';
+
+        // Build meta text
+        let metaText = '';
+        if (item.stats) {
+            metaText = `${item.stats.free} free of ${item.stats.total}`;
+        } else if (item.size && item.size !== '-') {
+            metaText = item.size;
+        } else if (item.type === 'drive') {
+            metaText = 'DRIVE';
+        } else if (item.is_dir) {
+            metaText = 'DIR';
+        }
+
+        // Build drive progress bar for drive cards
+        let progressHtml = '';
+        if (item.type === 'drive' && item.stats) {
+            const freeMatch = item.stats.free.match(/([\d.]+)/);
+            const totalMatch = item.stats.total.match(/([\d.]+)/);
+            if (freeMatch && totalMatch) {
+                const free = parseFloat(freeMatch[1]);
+                const total = parseFloat(totalMatch[1]);
+                // Convert to same unit if needed (both should be GB from API)
+                const usedPct = Math.round(((total - free) / total) * 100);
+                let usageTier = 'usage-low';
+                if (usedPct > 90) usageTier = 'usage-critical';
+                else if (usedPct > 75) usageTier = 'usage-high';
+                else if (usedPct > 50) usageTier = 'usage-mid';
+                progressHtml = `
+                    <div class="drive-progress">
+                        <div class="drive-progress-fill ${usageTier}" style="width:${usedPct}%"></div>
+                    </div>
+                    <div class="drive-progress-text">${usedPct}% USED</div>
+                `;
+            }
+        }
+
         card.innerHTML = `
             <div class="icon">${iconContent}</div>
             <div class="file-info">
                 <span class="file-name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
-                <div class="file-meta">
-                    ${item.stats ? `${item.stats.free} free of ${item.stats.total}` : (item.size && item.size !== '-' ? item.size : (item.type === 'drive' ? 'DRIVE' : (item.is_dir ? 'DIR' : '')))}
-                </div>
+                <div class="${metaClass}">${metaText}</div>
             </div>
+            ${progressHtml}
         `;
 
         card.style.animationDelay = `${index * 30}ms`;
