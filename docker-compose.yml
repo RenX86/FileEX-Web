@@ -1,0 +1,15 @@
+services:
+  fileex-web:
+    build: .
+    image: fileex-web:latest
+    container_name: fileex-web
+    ports:
+      - "6979:6979"
+    env_file:
+      - .env
+    volumes:
+      # Mount your Windows drives here (read-only)
+      - C:\:/mnt/C:ro
+      - D:\:/mnt/D:ro
+      - E:\:/mnt/E:ro
+    restart: unless-stopped

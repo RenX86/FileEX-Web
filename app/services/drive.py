@@ -39,13 +39,45 @@ class DriveService:
                     }
                 })
         else:
-            # Unix-like systems
-            drives.append({
-                "name": "/",
-                "path": "/",
-                "is_dir": True,
-                "type": "drive"
-            })
+            # Unix/Docker: check /mnt for mounted host drives
+            mnt = "/mnt"
+            if os.path.isdir(mnt):
+                subdirs = sorted([
+                    d for d in os.listdir(mnt)
+                    if os.path.isdir(os.path.join(mnt, d))
+                ])
+                for name in subdirs:
+                    mount_path = os.path.join(mnt, name)
+                    try:
+                        usage = shutil.disk_usage(mount_path)
+                        total = format_size(usage.total)
+                        free = format_size(usage.free)
+                        used_percent = round((usage.used / usage.total) * 100, 1)
+                    except Exception:
+                        total = "Unknown"
+                        free = "Unknown"
+                        used_percent = 0
+
+                    drives.append({
+                        "name": f"{name}:\\",
+                        "path": mount_path,
+                        "is_dir": True,
+                        "type": "drive",
+                        "stats": {
+                            "total": total,
+                            "free": free,
+                            "used_percent": used_percent
+                        }
+                    })
+
+            # Fallback: if no mounts found, show root
+            if not drives:
+                drives.append({
+                    "name": "/",
+                    "path": "/",
+                    "is_dir": True,
+                    "type": "drive"
+                })
         return drives
 
     @staticmethod
