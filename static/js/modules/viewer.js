@@ -7,12 +7,52 @@ import { getCurrentItems } from './actions.js';
 let currentMediaItem = null;
 
 // Keyboard navigation
+// Keyboard navigation
 document.addEventListener('keydown', (e) => {
     if (modal.style.display === 'flex' && currentMediaItem) {
         if (e.key === 'ArrowLeft') navigateMedia(-1);
         if (e.key === 'ArrowRight') navigateMedia(1);
     }
 });
+
+// Touch Swipe Navigation
+let touchStartX = 0;
+let touchStartY = 0;
+
+document.addEventListener('touchstart', (e) => {
+    if (modal.style.display === 'flex' && currentMediaItem) {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+    }
+}, { passive: true });
+
+document.addEventListener('touchend', (e) => {
+    if (modal.style.display === 'flex' && currentMediaItem) {
+        const touchEndX = e.changedTouches[0].screenX;
+        const touchEndY = e.changedTouches[0].screenY;
+
+        handleSwipeGesture(touchStartX, touchStartY, touchEndX, touchEndY);
+    }
+}, { passive: true });
+
+function handleSwipeGesture(startX, startY, endX, endY) {
+    const diffX = endX - startX;
+    const diffY = endY - startY;
+    const threshold = 50; // min distance to capture swipe
+
+    // Ensure it's a horizontal swipe (more horizontal than vertical)
+    if (Math.abs(diffX) > Math.abs(diffY)) {
+        if (Math.abs(diffX) > threshold) {
+            if (diffX > 0) {
+                // Swipe Right -> Previous
+                navigateMedia(-1);
+            } else {
+                // Swipe Left -> Next
+                navigateMedia(1);
+            }
+        }
+    }
+}
 
 export function closeModal() {
     modal.style.display = 'none';
