@@ -108,6 +108,61 @@
     word-break: break-all;
 }
 
+.archive-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.file-icon {
+    width: 18px;
+    height: 18px;
+    stroke-width: 2;
+    flex-shrink: 0;
+}
+
+.archive-dl-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 2px solid #000;
+    background: #fff;
+    border-radius: 4px;
+    color: #000;
+    transition: all 0.1s;
+    cursor: pointer;
+}
+
+.archive-dl-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.archive-dl-btn:hover {
+    background: var(--c-cyan);
+    transform: translateY(-2px);
+    box-shadow: 2px 2px 0 #000;
+}
+
+.archive-dl-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+[data-theme="dark"] .archive-dl-btn {
+    background: #333;
+    border-color: #555;
+    color: #fff;
+    box-shadow: 2px 2px 0 #111;
+}
+
+[data-theme="dark"] .archive-dl-btn:hover {
+    background: var(--c-cyan);
+    color: #000;
+}
+
 /* Previewable archive entries */
 .archive-previewable {
     cursor: pointer;

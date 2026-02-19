@@ -138,6 +138,12 @@ export function renderArchiveTable(data, archivePath) {
 
     const galleryBtn = mediaCount > 0 ? `<button class="archive-mode-btn active">📋 LIST</button><button class="archive-mode-btn" onclick="window.renderArchiveGallery(document.getElementById('media-container')._archiveData, document.getElementById('media-container')._archivePath)">🖼️ GALLERY (${mediaCount})</button>` : '';
 
+    // Icons
+    const iconFolder = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
+    const iconFile = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`;
+    const iconEye = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+    const iconDownload = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+
     let html = `
         <div class="archive-viewer">
             <div class="archive-header">
@@ -150,24 +156,37 @@ export function renderArchiveTable(data, archivePath) {
             <div class="archive-table-wrap">
                 <table class="archive-table">
                     <thead>
-                        <tr><th>Name</th><th>Size</th><th>Compressed</th></tr>
+                        <tr><th style="width:60%">Name</th><th>Size</th><th>Comp.</th><th style="width:50px"></th></tr>
                     </thead>
                     <tbody>`;
 
     for (const entry of data.entries) {
         const entryExt = entry.name.split('.').pop().toLowerCase();
         const isPreviewable = !entry.is_dir && previewableExts.includes(entryExt);
-        const icon = entry.is_dir ? '📁' : (isPreviewable ? '👁️' : '📄');
+
+        let icon = entry.is_dir ? iconFolder : iconFile;
+        // If previewable, use Eye icon? Or just keep file icon and make it clickable? 
+        // Let's use Eye for distinct action, or just File icon with hover effect.
+        // User asked for better icons.
+
         const clickClass = isPreviewable ? 'archive-previewable' : '';
         const clickAttr = isPreviewable
             ? `onclick="window.previewArchiveEntry('${escapedPath}', '${entry.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')"`
             : '';
 
+        // Download Link
+        // /api/archive/view?path=...&entry=...
+        const downloadUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entry.name)}`;
+        const downloadAction = !entry.is_dir
+            ? `<a href="${downloadUrl}" download="${entry.name.split('/').pop()}" class="archive-dl-btn" title="Download" onclick="event.stopPropagation()">${iconDownload}</a>`
+            : '';
+
         html += `
             <tr class="${entry.is_dir ? 'archive-dir' : ''} ${clickClass}" ${clickAttr}>
-                <td>${icon} ${escapeHtml(entry.name)}</td>
+                <td><div class="archive-name-wrap">${icon} <span>${escapeHtml(entry.name)}</span></div></td>
                 <td>${entry.size_fmt}</td>
                 <td>${entry.compressed_fmt}</td>
+                <td style="text-align:right;">${downloadAction}</td>
             </tr>`;
     }
 
