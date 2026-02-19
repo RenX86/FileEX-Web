@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Query
 from typing import List, Dict, Any, Optional
 from app.services.drive import DriveService
+from app.core.config import settings
 import os
 import platform
 from fastapi.responses import FileResponse, StreamingResponse
@@ -226,3 +227,28 @@ async def view_archive_entry(path: str = Query(...), entry: str = Query(...)):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to extract file: {str(e)}")
+
+@router.delete("/delete")
+async def delete_file(path: str = Query(...)):
+    """
+    Delete a file or list of files (move to trash).
+    """
+    if settings.READ_ONLY:
+         raise HTTPException(status_code=405, detail="Delete not allowed in Read-Only mode")
+    
+    try:
+        validate_path(path)
+        
+        if not os.path.exists(path):
+            raise HTTPException(status_code=404, detail="Item not found")
+            
+        if not os.path.isfile(path):
+            raise HTTPException(status_code=400, detail="Only files can be deleted")
+            
+        DriveService.delete_file(path)
+        return {"detail": "Item moved to trash"}
+        
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete item: {str(e)}")

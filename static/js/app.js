@@ -58,6 +58,7 @@ function renderItems(items) {
         const colorClass = `color-${colorIndex}`;
 
         card.className = `file-card ${colorClass}${item.type === 'drive' ? ' drive-card' : ''}`;
+        card.setAttribute('data-file-path', item.path);
         card.onclick = () => handleItemClick(item);
 
         const ext = item.name.split('.').pop().toLowerCase();
@@ -127,6 +128,9 @@ function renderItems(items) {
                 <div class="${metaClass}">${metaText}</div>
             </div>
             ${progressHtml}
+            ${!item.is_dir ? `<div class="file-delete-btn" onclick="confirmDelete(event, '${escapeHtml(item.path.replace(/\\/g, '\\\\').replace(/'/g, "\\'"))}', '${escapeHtml(item.name.replace(/'/g, "\\'"))}')">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            </div>` : ''}
         `;
 
         card.style.animationDelay = `${index * 30}ms`;
@@ -438,6 +442,72 @@ function openRecentFile(filePath, fileName) {
             </video>`;
         modal.style.display = 'flex';
         document.body.classList.add('modal-open');
+    }
+}
+
+
+function confirmDelete(event, path, name) {
+    event.stopPropagation();
+    const modal = document.getElementById('media-modal');
+    const mediaContainer = document.getElementById('media-container');
+
+    mediaContainer.innerHTML = `
+        <div class="modal-content danger-modal">
+            <div class="danger-modal-icon">💣</div>
+            <h2>DELETE ITEM?</h2>
+            <p>Move <strong>${name}</strong> to Trash?</p>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal()">NO, KEEP IT</button>
+                <button class="btn-confirm" onclick="deleteItem('${path.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')">YES, DELETE</button>
+            </div>
+        </div>
+    `;
+    modal.style.display = 'flex';
+    document.body.classList.add('modal-open');
+}
+
+async function deleteItem(path) {
+    const mediaContainer = document.getElementById('media-container');
+    mediaContainer.innerHTML = '<div class="loading" style="background:var(--c-orange); color:#fff;">DELETING...</div>';
+
+    try {
+        const response = await fetch(`${API_BASE}/delete?path=${encodeURIComponent(path)}`, {
+            method: 'DELETE'
+        });
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.detail || 'Failed to delete item');
+        }
+
+        closeModal();
+        showToast('🗑️ Item moved to Recycle Bin');
+
+        // Remove item from DOM without refreshing
+        const escapedPath = path.replace(/\\/g, '\\');
+        // We need to match the data-file-path attribute. 
+        // Since we stored it raw, we can try to find it.
+        // We can also just find by the onclick handler or add a data attribute (done in previous step).
+
+        const card = document.querySelector(`.file-card[data-file-path="${path.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"]`);
+        if (card) {
+            card.style.transition = 'all 0.3s ease';
+            card.style.transform = 'scale(0.8)';
+            card.style.opacity = '0';
+            setTimeout(() => card.remove(), 300);
+        } else {
+            // Fallback if DOM element not found
+            loadPath(currentPath);
+        }
+
+    } catch (error) {
+        mediaContainer.innerHTML = `
+            <div class="modal-content danger-modal" style="background:var(--card-bg); padding:2rem; text-align:center;">
+                <h2>⚠️ ERROR</h2>
+                <p>${escapeHtml(error.message)}</p>
+                <button class="btn-cancel" onclick="closeModal()">CLOSE</button>
+            </div>
+        `;
     }
 }
 

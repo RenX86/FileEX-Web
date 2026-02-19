@@ -6,3 +6,4 @@ aiofiles==25.1.0
 pydantic-settings==2.12.0
 Pillow==12.1.1
 itsdangerous==2.2.0
+send2trash

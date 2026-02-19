@@ -13,6 +13,7 @@
     --c-lime: #00FF00;
     --c-orange: #FF5722;
     --c-lavender: #E8DAEF;
+    --c-red: #FF1744;
 
     --font-main: 'Space Grotesk', sans-serif;
     --font-mono: 'Space Mono', monospace;
@@ -30,7 +31,9 @@
     --c-cyan: #00BCD4;
     --c-lime: #76FF03;
     --c-orange: #FF7043;
+    --c-orange: #FF7043;
     --c-lavender: #4A235A;
+    --c-red: #D50000;
 }
 
 [data-theme="dark"] body {
@@ -1371,4 +1374,154 @@ body.modal-open {
             transform: translateY(20px);
         }
     }
+}
+
+/* Delete Button & Modal - Polished */
+.file-delete-btn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: all 0.2s ease;
+    z-index: 10;
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 50%;
+    box-shadow: 2px 2px 0 #000;
+}
+
+.file-card:hover .file-delete-btn {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.file-delete-btn:hover {
+    background: #FF1744;
+    color: #fff;
+    transform: scale(1.1);
+    box-shadow: 3px 3px 0 #000;
+    border-color: #000;
+}
+
+.file-delete-btn svg {
+    width: 18px;
+    height: 18px;
+    stroke: #000;
+    stroke-width: 2.5;
+    fill: none;
+    transition: stroke 0.2s;
+}
+
+.file-delete-btn:hover svg {
+    stroke: #fff;
+}
+
+.modal-content.danger-modal {
+    border: 3px solid #000;
+    box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+    background: #fff;
+    padding: 2.5rem;
+    border-radius: 12px;
+}
+
+.danger-modal-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+    animation: shake 0.5s ease-in-out;
+}
+
+.danger-modal h2 {
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    color: #000;
+}
+
+.danger-modal p {
+    font-size: 1.1rem;
+    color: #444;
+    margin-bottom: 2rem;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-cancel,
+.btn-confirm {
+    padding: 0.8rem 1.6rem;
+    font-family: var(--font-main);
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    border: 2px solid #000;
+    box-shadow: 3px 3px 0 #000;
+    text-transform: uppercase;
+    border-radius: 6px;
+    transition: all 0.1s;
+}
+
+.btn-cancel {
+    background: #f5f5f5;
+    color: #444;
+}
+
+.btn-confirm {
+    background: #FF1744;
+    color: #fff;
+}
+
+.btn-cancel:hover,
+.btn-confirm:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0 #000;
+}
+
+.btn-cancel:active,
+.btn-confirm:active {
+    transform: translate(2px, 2px);
+    box-shadow: 1px 1px 0 #000;
+}
+
+[data-theme="dark"] .file-delete-btn {
+    background: #333;
+    border-color: #555;
+    box-shadow: 2px 2px 0 #111;
+}
+
+[data-theme="dark"] .file-delete-btn svg {
+    stroke: #fff;
+}
+
+[data-theme="dark"] .file-delete-btn:hover {
+    background: #FF5252;
+    border-color: #FF5252;
+}
+
+[data-theme="dark"] .modal-content.danger-modal {
+    background: #1e1e1e;
+    border-color: #555;
+    box-shadow: 8px 8px 0 #111;
+}
+
+[data-theme="dark"] .danger-modal h2 {
+    color: #fff;
+}
+
+[data-theme="dark"] .danger-modal p {
+    color: #bbb;
+}
+
+[data-theme="dark"] .btn-cancel {
+    background: #333;
+    color: #ddd;
+    border-color: #555;
 }

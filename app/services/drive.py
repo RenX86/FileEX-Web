@@ -3,6 +3,7 @@ import platform
 import pathlib
 from typing import List, Dict, Any, Union
 from app.utils.formatters import format_size, format_timestamp
+from send2trash import send2trash
 
 class DriveService:
     @staticmethod
@@ -122,5 +123,19 @@ class DriveService:
         # Sort: Directories first, then files. Both alphabetical.
         items.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
         return items
+
+    @staticmethod
+    def delete_file(path: str) -> None:
+        """
+        Send a file or directory to the recycle bin.
+        """
+        if not os.path.exists(path):
+            raise FileNotFoundError(f"Path not found: {path}")
+            
+        # Security check is done in the API endpoint before calling this
+        try:
+            send2trash(path)
+        except Exception as e:
+            raise Exception(f"Failed to delete item: {str(e)}")
 
 drive_service = DriveService()
