@@ -1,5 +1,5 @@
 import { loadPath, handleItemClick, confirmDelete, deleteItem, clearRecentFiles } from './modules/actions.js';
-import { closeModal, openRecentFile, previewArchiveEntry, playFeedVideo } from './modules/viewer.js';
+import { closeModal, openRecentFile, previewArchiveEntry, playFeedVideo, navigateMedia } from './modules/viewer.js';
 import { renderArchiveTable, renderArchiveGallery } from './modules/ui.js';
 
 // Expose to window for inline onclicks
@@ -14,6 +14,7 @@ window.renderArchiveTable = renderArchiveTable;
 window.renderArchiveGallery = renderArchiveGallery;
 window.previewArchiveEntry = previewArchiveEntry;
 window.playFeedVideo = playFeedVideo;
+window.navigateMedia = navigateMedia;
 
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {

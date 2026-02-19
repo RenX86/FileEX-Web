@@ -2,19 +2,38 @@ import { API_BASE, IMAGE_EXTS, VIDEO_EXTS } from './config.js';
 import { escapeHtml } from './utils.js';
 import { mediaContainer, modal } from './ui.js';
 import { addRecentFile } from './store.js';
+import { getCurrentItems } from './actions.js';
+
+let currentMediaItem = null;
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+    if (modal.style.display === 'flex' && currentMediaItem) {
+        if (e.key === 'ArrowLeft') navigateMedia(-1);
+        if (e.key === 'ArrowRight') navigateMedia(1);
+    }
+});
 
 export function closeModal() {
     modal.style.display = 'none';
     mediaContainer.innerHTML = '';
     document.body.classList.remove('modal-open');
+    currentMediaItem = null;
 }
 
 export function openMedia(item) {
+    currentMediaItem = item;
     const ext = item.name.split('.').pop().toLowerCase();
     const viewUrl = `${API_BASE}/view?path=${encodeURIComponent(item.path)}`;
 
+    // Navigation buttons HTML
+    const navHtml = `
+        <div class="media-nav prev" onclick="window.navigateMedia(-1)">❮</div>
+        <div class="media-nav next" onclick="window.navigateMedia(1)">❯</div>
+    `;
+
     if (IMAGE_EXTS.includes(ext)) {
-        mediaContainer.innerHTML = `<img src="${viewUrl}" alt="${escapeHtml(item.name)}">`;
+        mediaContainer.innerHTML = `${navHtml}<img src="${viewUrl}" alt="${escapeHtml(item.name)}">`;
         modal.style.display = 'flex';
         document.body.classList.add('modal-open');
         addRecentFile(item);
@@ -24,6 +43,7 @@ export function openMedia(item) {
         if (ext === 'mkv') mimeType = 'video/webm';
 
         mediaContainer.innerHTML = `
+            ${navHtml}
             <video controls autoplay muted playsinline style="max-width:100%; max-height:80vh;">
                 <source src="${viewUrl}" type="${mimeType}">
                 Your browser does not support the video tag.
@@ -36,10 +56,45 @@ export function openMedia(item) {
             <iframe src="${viewUrl}" style="width:80vw; height:85vh; border:none; background:#fff;"></iframe>`;
         modal.style.display = 'flex';
         document.body.classList.add('modal-open');
+        // No nav for PDF usually, or could add it
     }
 }
 
+export function navigateMedia(step) {
+    if (!currentMediaItem) return;
+
+    const items = getCurrentItems();
+    if (!items || items.length === 0) return;
+
+    // Filter only navigable items (images/videos)
+    const navigableItems = items.filter(i => {
+        if (i.is_dir) return false;
+        const ext = i.name.split('.').pop().toLowerCase();
+        return IMAGE_EXTS.includes(ext) || VIDEO_EXTS.includes(ext);
+    });
+
+    if (navigableItems.length <= 1) return;
+
+    const currentIndex = navigableItems.findIndex(i => i.path === currentMediaItem.path);
+    if (currentIndex === -1) return;
+
+    let nextIndex = currentIndex + step;
+    // Wrap around
+    if (nextIndex < 0) nextIndex = navigableItems.length - 1;
+    if (nextIndex >= navigableItems.length) nextIndex = 0;
+
+    openMedia(navigableItems[nextIndex]);
+}
+
 export function openRecentFile(filePath, fileName) {
+    // ... existing ... but update to set currentMediaItem if possible, 
+    // though navigating from recent files implies we might not have the full context of that folder loaded.
+    // For now, disable nav when opening from recent files or limit it.
+    // Actually, openMedia relies on item object. openRecentFile only has path/name.
+    // We'll keep openRecentFile simple and maybe NOT support nav there unless we fetch the folder.
+
+    currentMediaItem = null; // No context for navigation
+
     const ext = fileName.split('.').pop().toLowerCase();
     const viewUrl = `${API_BASE}/view?path=${encodeURIComponent(filePath)}`;
 
@@ -61,6 +116,7 @@ export function openRecentFile(filePath, fileName) {
 }
 
 export function previewArchiveEntry(archivePath, entryName) {
+    currentMediaItem = null;
     const ext = entryName.split('.').pop().toLowerCase();
     const viewUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entryName)}`;
 

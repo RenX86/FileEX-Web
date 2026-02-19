@@ -675,7 +675,7 @@ h1 .logo-accent {
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .close-btn {
@@ -1524,4 +1524,73 @@ body.modal-open {
     background: #333;
     color: #ddd;
     border-color: #555;
+}
+
+/* Media Navigation */
+.media-nav {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: var(--card-bg);
+    color: var(--text-color);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow);
+    padding: 15px 20px;
+    font-size: 2.5rem;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    z-index: 2000;
+    user-select: none;
+    transition: all 0.1s;
+    line-height: 0.8;
+}
+
+.media-nav:hover {
+    background: var(--c-cyan);
+    color: #000;
+    transform: translateY(-50%) translate(-2px, -2px);
+    box-shadow: 7px 7px 0px 0px #000;
+}
+
+.media-nav:active {
+    transform: translateY(-50%) translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px #000;
+}
+
+.media-nav.prev {
+    left: 30px;
+}
+
+.media-nav.next {
+    right: 30px;
+}
+
+/* Mobile Responsive Media Nav */
+@media (max-width: 768px) {
+    .media-nav {
+        padding: 10px 12px;
+        font-size: 1.5rem;
+        bottom: 20px;
+        top: auto;
+        transform: none;
+    }
+
+    .media-nav:hover {
+        transform: translate(-1px, -1px);
+        box-shadow: 4px 4px 0px 0px #000;
+    }
+
+    .media-nav.prev {
+        left: 20px;
+    }
+
+    .media-nav.next {
+        right: 20px;
+    }
+
+    /* Ensure modal image doesn't get covered effectively */
+    .modal-content {
+        max-height: 80vh;
+        max-width: 95vw;
+    }
 }

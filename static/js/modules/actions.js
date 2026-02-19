@@ -7,6 +7,11 @@ import { closeModal } from './viewer.js';
 import { getRecentFiles, clearRecentFiles as storeClearRecent } from './store.js';
 
 let currentPath = '';
+let currentItems = [];
+
+export function getCurrentItems() {
+    return currentItems;
+}
 
 export async function loadPath(path) {
     currentPath = path;
@@ -15,6 +20,7 @@ export async function loadPath(path) {
 
     try {
         const items = await fetchFiles(path);
+        currentItems = items; // Store for navigation
         renderItems(items);
         if (items.length > 0 && items[0].type === 'drive') {
             renderRecentFiles(getRecentFiles());
