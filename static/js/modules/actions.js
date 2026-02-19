@@ -60,7 +60,7 @@ export function confirmDelete(event, path, name) {
     event.stopPropagation();
 
     mediaContainer.innerHTML = `
-        <div class="modal-content danger-modal">
+        <div class="danger-modal">
             <div class="danger-modal-icon">💣</div>
             <h2>DELETE ITEM?</h2>
             <p>Move <strong>${name}</strong> to Trash?</p>
