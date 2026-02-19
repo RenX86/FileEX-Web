@@ -1,0 +1,391 @@
+/* File Grid */
+.file-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+
+/* File Card Base */
+.file-card {
+    background: var(--card-bg);
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: var(--shadow);
+    padding: 1.25rem;
+    cursor: pointer;
+    transition: all 0.15s ease-out;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+    overflow: hidden;
+    animation: cardFadeIn 0.3s ease-out both;
+}
+
+@keyframes cardFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+[data-theme="dark"] .file-card {
+    box-shadow: 4px 4px 0px 0px #222;
+}
+
+.file-card:hover {
+    transform: translate(-4px, -4px);
+    box-shadow: 9px 9px 0px 0px #000;
+}
+
+[data-theme="dark"] .file-card:hover {
+    box-shadow: 9px 9px 0px 0px #222;
+}
+
+.file-card:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px 0px #000;
+}
+
+/* Color Variants */
+.file-card.color-0 {
+    background-color: #fff;
+}
+
+[data-theme="dark"] .file-card.color-0 {
+    background-color: #1e1e1e;
+}
+
+[data-theme="dark"] .file-card.color-0:hover {
+    background-color: #333;
+}
+
+.file-card.color-1 {
+    background-color: #e0f7fa;
+}
+
+[data-theme="dark"] .file-card.color-1 {
+    background-color: #1a2a2e;
+}
+
+.file-card.color-1:hover {
+    background-color: var(--c-cyan);
+}
+
+[data-theme="dark"] .file-card.color-1:hover {
+    background-color: #0097A7;
+}
+
+.file-card.color-2 {
+    background-color: #fce4ec;
+}
+
+[data-theme="dark"] .file-card.color-2 {
+    background-color: #2a1a22;
+}
+
+.file-card.color-2:hover {
+    background-color: var(--c-pink);
+}
+
+[data-theme="dark"] .file-card.color-2:hover {
+    background-color: #C2185B;
+}
+
+.file-card.color-3 {
+    background-color: #f9fbe7;
+}
+
+[data-theme="dark"] .file-card.color-3 {
+    background-color: #1e2a16;
+}
+
+.file-card.color-3:hover {
+    background-color: var(--c-lime);
+}
+
+[data-theme="dark"] .file-card.color-3:hover {
+    background-color: #558B2F;
+}
+
+.file-card.color-4 {
+    background-color: #fff3e0;
+}
+
+[data-theme="dark"] .file-card.color-4 {
+    background-color: #2a1e16;
+}
+
+.file-card.color-4:hover {
+    background-color: var(--c-orange);
+}
+
+[data-theme="dark"] .file-card.color-4:hover {
+    background-color: #D84315;
+}
+
+.file-card.color-5 {
+    background-color: var(--c-lavender);
+}
+
+[data-theme="dark"] .file-card.color-5 {
+    background-color: #2a1a2e;
+}
+
+.file-card.color-5:hover {
+    background-color: #CE93D8;
+}
+
+[data-theme="dark"] .file-card.color-5:hover {
+    background-color: #7B1FA2;
+}
+
+/* Card Content Elements */
+.icon {
+    font-size: 2.5rem;
+    filter: drop-shadow(2px 2px 0px rgba(0, 0, 0, 0.2));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-width: 50px;
+}
+
+.file-thumbnail {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: 3px 3px 0px var(--border-color);
+    background: var(--card-bg);
+}
+
+[data-theme="dark"] .file-thumbnail {
+    border-color: #555;
+    box-shadow: 2px 2px 0px #333;
+    background: #222;
+}
+
+.file-info {
+    flex: 1;
+    overflow: hidden;
+}
+
+.file-name {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    font-size: 1.15rem;
+    letter-spacing: -0.5px;
+    margin-bottom: 0.3rem;
+}
+
+.file-meta {
+    font-size: 0.7rem;
+    font-family: var(--font-mono);
+    font-weight: 700;
+    background: #222;
+    color: #fff;
+    padding: 3px 10px;
+    display: inline-block;
+    letter-spacing: 0.5px;
+}
+
+[data-theme="dark"] .file-meta {
+    background: #555;
+    color: #fff;
+}
+
+.file-meta--dir {
+    background: #2E7D32;
+}
+
+.file-meta--image {
+    background: #1565C0;
+}
+
+.file-meta--video {
+    background: #6A1B9A;
+}
+
+.file-meta--archive {
+    background: #E65100;
+}
+
+.file-meta--drive {
+    background: #37474F;
+}
+
+/* Drive Cards */
+.drive-card {
+    padding: 2rem 1.5rem;
+    min-height: 100px;
+    flex-wrap: wrap;
+}
+
+[data-theme="dark"] .drive-card {
+    box-shadow: 5px 5px 0px 0px #222;
+}
+
+.drive-card .icon {
+    font-size: 3.5rem;
+}
+
+.drive-card .file-name {
+    font-size: 1.5rem;
+    letter-spacing: -0.5px;
+}
+
+/* Drive progress bar */
+.drive-progress {
+    width: 100%;
+    height: 14px;
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    margin-top: 0.5rem;
+    position: relative;
+    flex-basis: 100%;
+}
+
+.drive-progress-fill {
+    height: 100%;
+    transition: width 0.3s;
+}
+
+.drive-progress-fill.usage-low {
+    background: var(--c-lime);
+}
+
+.drive-progress-fill.usage-mid {
+    background: var(--c-yellow);
+}
+
+.drive-progress-fill.usage-high {
+    background: var(--c-orange);
+}
+
+.drive-progress-fill.usage-critical {
+    background: #FF1744;
+}
+
+.drive-progress-text {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    font-weight: 700;
+    margin-top: 4px;
+    letter-spacing: 0.5px;
+}
+
+/* Recent Files Strips */
+.recent-files-section {
+    margin-bottom: 2rem;
+    animation: cardFadeIn 0.4s ease-out both;
+}
+
+.recent-files-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+
+.recent-files-title {
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.recent-files-clear {
+    background: none;
+    border: 2px solid #ccc;
+    color: #888;
+    font-family: var(--font-main);
+    font-weight: 700;
+    font-size: 0.7rem;
+    padding: 3px 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    transition: all 0.15s;
+}
+
+.recent-files-clear:hover {
+    border-color: var(--c-orange);
+    color: var(--c-orange);
+}
+
+.recent-files-strip {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: thin;
+}
+
+.recent-files-strip::-webkit-scrollbar {
+    height: 6px;
+}
+
+.recent-files-strip::-webkit-scrollbar-thumb {
+    background: #ccc;
+    border-radius: 3px;
+}
+
+[data-theme="dark"] .recent-files-strip::-webkit-scrollbar-thumb {
+    background: #555;
+}
+
+[data-theme="dark"] .recent-files-strip::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.recent-file-thumb {
+    flex-shrink: 0;
+    width: 120px;
+    height: 90px;
+    border: var(--border-width) solid var(--border-color);
+    box-shadow: 3px 3px 0px 0px #000;
+    background: #000;
+    cursor: pointer;
+    overflow: hidden;
+    transition: all 0.15s;
+    position: relative;
+}
+
+[data-theme="dark"] .recent-file-thumb {
+    box-shadow: 3px 3px 0px 0px #222;
+    background: #222;
+}
+
+.recent-file-thumb:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 5px 5px 0px 0px #000;
+}
+
+.recent-file-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.recent-file-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 2px 6px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.75);
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-main);
+}

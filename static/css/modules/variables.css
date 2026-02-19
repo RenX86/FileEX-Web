@@ -1,0 +1,42 @@
+:root {
+    --bg-color: #fafafa;
+    --text-color: #000;
+    --card-bg: #fff;
+    --border-color: #000;
+    --border-width: 3px;
+    --shadow: 5px 5px 0px 0px #000;
+
+    /* Vibrant Palette */
+    --c-yellow: #FFEB3B;
+    --c-pink: #FF90E8;
+    --c-cyan: #00E5FF;
+    --c-lime: #00FF00;
+    --c-orange: #FF5722;
+    --c-lavender: #E8DAEF;
+    --c-red: #FF1744;
+
+    --font-main: 'Space Grotesk', sans-serif;
+    --font-mono: 'Space Mono', monospace;
+}
+
+/* Dark Mode */
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --text-color: #e0e0e0;
+    --card-bg: #1e1e1e;
+    --border-color: #444;
+    --shadow: 5px 5px 0px 0px #222;
+    --c-yellow: #FDD835;
+    --c-pink: #F48FB1;
+    --c-cyan: #00BCD4;
+    --c-lime: #76FF03;
+    --c-orange: #FF7043;
+    --c-orange: #FF7043;
+    /* duplicate in source, keeping for fidelity */
+    --c-lavender: #4A235A;
+    --c-red: #D50000;
+}
+
+[data-theme="dark"] body {
+    background-image: radial-gradient(#333 1px, transparent 0);
+}
