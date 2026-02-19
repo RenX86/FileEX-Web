@@ -155,17 +155,30 @@ body.modal-open {
     border-color: #FF5252;
 }
 
+/* Danger Mode Overrides */
+.modal.danger-active .modal-content {
+    border: none;
+    box-shadow: none;
+    background: transparent;
+}
+
+.modal.danger-active .close-btn {
+    display: none;
+}
+
 /* Danger Modal (Delete Confirmation) */
 .danger-modal {
     border: 3px solid #000;
     box-shadow: 8px 8px 0 #000;
     background: #fff;
-    padding: 2.5rem;
+    padding: 2rem;
     border-radius: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
     width: 100%;
+    max-width: 400px;
+    /* Limit width on desktop */
 }
 
 [data-theme="dark"] .danger-modal {
@@ -175,15 +188,15 @@ body.modal-open {
 }
 
 .danger-modal-icon {
-    font-size: 3.5rem;
-    margin-bottom: 1rem;
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
     animation: shake 0.5s ease-in-out;
 }
 
 .danger-modal h2 {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     text-transform: uppercase;
-    margin-bottom: 1rem;
+    margin-bottom: 0.5rem;
     color: #000;
     font-weight: 700;
     letter-spacing: -0.5px;

@@ -55,6 +55,7 @@ function handleSwipeGesture(startX, startY, endX, endY) {
 }
 
 export function closeModal() {
+    modal.classList.remove('danger-active');
     modal.style.display = 'none';
     mediaContainer.innerHTML = '';
     document.body.classList.remove('modal-open');
