@@ -134,18 +134,48 @@ export function handleItemClick(item) {
     }
 }
 
-async function openArchiveViewer(item) {
+export async function openArchiveViewer(item, providedPassword = null) {
     mediaContainer.innerHTML = '<div class="loading">READING ARCHIVE...</div>';
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
 
     try {
-        const data = await fetchArchive(item.path);
+        const data = await fetchArchive(item.path, providedPassword);
+        mediaContainer._archivePassword = providedPassword;
         renderArchiveTable(data, item.path);
     } catch (error) {
-        mediaContainer.innerHTML = `<div class="loading" style="background:var(--c-pink); color:#000;">ERROR: ${escapeHtml(error.message)}</div>`;
+        if (error.name === 'PasswordRequired') {
+            promptArchivePassword(item);
+        } else {
+            mediaContainer.innerHTML = `<div class="loading" style="background:var(--c-pink); color:#000;">ERROR: ${escapeHtml(error.message)}</div>`;
+        }
     }
 }
+
+function promptArchivePassword(item) {
+    mediaContainer.innerHTML = `
+        <div class="danger-modal" style="background:var(--card-bg); border-color:var(--border-color);">
+            <div class="danger-modal-icon">🔒</div>
+            <h2 style="color:var(--text-color);">PASSWORD REQUIRED</h2>
+            <p style="color:var(--text-color);">Enter password to decrypt <strong>${escapeHtml(item.name)}</strong>.</p>
+            <input type="password" id="archive-password-input" style="width:100%; margin-bottom:1rem; padding:0.8rem; text-align:center; border:2px solid var(--border-color); font-family:var(--font-mono); font-size:1.1rem;" placeholder="Password" autofocus onkeydown="if(event.key === 'Enter') window._submitArchivePassword('${item.path.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}', this.value)">
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="window.closeModal()">CANCEL</button>
+                <button class="btn-confirm" style="background:var(--c-green); color:#000; border-color:#000;" onclick="window._submitArchivePassword('${item.path.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}', '${item.name.replace(/'/g, "\\'")}', document.getElementById('archive-password-input').value)">UNLOCK</button>
+            </div>
+        </div>
+    `;
+    setTimeout(() => {
+        const input = document.getElementById('archive-password-input');
+        if (input) input.focus();
+    }, 50);
+}
+
+window._submitArchivePassword = function (path, name, password) {
+    if (!password) return;
+    const item = { path, name };
+    openArchiveViewer(item, password);
+};
 
 export function confirmDelete(event, path, name) {
     event.stopPropagation();

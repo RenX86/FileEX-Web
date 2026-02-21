@@ -8,7 +8,7 @@ from fastapi.responses import FileResponse, StreamingResponse
 from PIL import Image
 import io
 from app.utils.security import validate_path
-from app.core.constants import IMAGE_EXTENSIONS, ARCHIVE_EXTENSIONS
+from app.core.constants import IMAGE_EXTENSIONS, ARCHIVE_EXTENSIONS, VIDEO_EXTENSIONS
 
 router = APIRouter()
 
@@ -61,7 +61,7 @@ async def view_file(path: str = Query(...)):
 @router.get("/thumbnail")
 async def get_thumbnail(path: str = Query(...)):
     """
-    Generate a thumbnail for an image file.
+    Generate a thumbnail for an image or video file.
     """
     try:
         validate_path(path)
@@ -69,14 +69,31 @@ async def get_thumbnail(path: str = Query(...)):
         if not os.path.isfile(path):
             raise HTTPException(status_code=404, detail="File not found")
         
-        # Verify it's an image extension
         ext = path.split('.')[-1].lower()
-        if ext not in IMAGE_EXTENSIONS:
-             raise HTTPException(status_code=400, detail="Not a supported image type")
+        if ext not in IMAGE_EXTENSIONS and ext not in VIDEO_EXTENSIONS:
+             raise HTTPException(status_code=400, detail="Not a supported media type")
 
-        # Open image
-        try:
+        img = None
+        # Handle Videos via OpenCV
+        if ext in VIDEO_EXTENSIONS:
+            import cv2
+            cap = cv2.VideoCapture(path)
+            if not cap.isOpened():
+                raise HTTPException(status_code=500, detail="Failed to open video")
+            ret, frame = cap.read()
+            cap.release()
+            if not ret or frame is None:
+                raise HTTPException(status_code=500, detail="Failed to read video frame")
+            
+            # Convert BGR to RGB for PIL
+            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            img = Image.fromarray(frame_rgb)
+        else:
+            # Handle standard Images
             img = Image.open(path)
+            
+        try:
+            # Generate Thumbnail
             img.thumbnail((100, 100))
             
             buf = io.BytesIO()
@@ -96,13 +113,15 @@ async def get_thumbnail(path: str = Query(...)):
     except PermissionError:
         raise HTTPException(status_code=403, detail="Permission denied")
     except Exception as e:
+        if isinstance(e, HTTPException):
+             raise e
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/archive")
-async def list_archive(path: str = Query(...)):
+async def list_archive(path: str = Query(...), password: Optional[str] = Query(None)):
     """
-    List the contents of an archive file (zip, tar, gz, bz2).
+    List the contents of an archive file (zip, tar, gz, bz2, 7z, rar).
     """
     try:
         validate_path(path)
@@ -111,7 +130,6 @@ async def list_archive(path: str = Query(...)):
             raise HTTPException(status_code=404, detail="File not found")
 
         ext = path.split('.')[-1].lower()
-        # Handle compound extensions like .tar.gz, .tar.bz2
         basename = os.path.basename(path).lower()
 
         entries = []
@@ -120,14 +138,24 @@ async def list_archive(path: str = Query(...)):
             import zipfile
             if not zipfile.is_zipfile(path):
                 raise HTTPException(status_code=400, detail="Not a valid zip file")
-            with zipfile.ZipFile(path, 'r') as zf:
-                for info in zf.infolist():
-                    entries.append({
-                        "name": info.filename,
-                        "size": info.file_size,
-                        "compressed": info.compress_size,
-                        "is_dir": info.is_dir(),
-                    })
+            try:
+                pwd_bytes = password.encode('utf-8') if password else None
+                with zipfile.ZipFile(path, 'r') as zf:
+                    for info in zf.infolist():
+                        # Try to read a tiny bit of the first file to properly trigger password exceptions
+                        if not info.is_dir() and info.flag_bits & 0x1:
+                            if not pwd_bytes:
+                                raise RuntimeError("Bad password")
+                        entries.append({
+                            "name": info.filename,
+                            "size": info.file_size,
+                            "compressed": info.compress_size,
+                            "is_dir": info.is_dir(),
+                        })
+            except RuntimeError as e:
+                if 'Bad password' in str(e) or 'password required' in str(e).lower():
+                    raise HTTPException(status_code=401, detail="password_required")
+                raise HTTPException(status_code=500, detail=f"Zip error: {e}")
 
         elif basename.endswith('.tar.gz') or basename.endswith('.tar.bz2') or ext in ('tar', 'gz', 'bz2'):
             import tarfile
@@ -144,10 +172,44 @@ async def list_archive(path: str = Query(...)):
                 raise HTTPException(status_code=400, detail="Not a valid tar archive")
 
         elif ext == '7z':
-            raise HTTPException(status_code=400, detail="7z format requires py7zr library (not installed)")
+            try:
+                import py7zr
+                try:
+                    with py7zr.SevenZipFile(path, mode='r', password=password) as z:
+                        for info in z.list():
+                            entries.append({
+                                "name": info.filename,
+                                "size": info.uncompressed,
+                                "compressed": info.uncompressed, # 7z doesn't easily expose individual compressed sizes in list()
+                                "is_dir": info.is_directory,
+                            })
+                except py7zr.exceptions.PasswordRequired:
+                    raise HTTPException(status_code=401, detail="password_required")
+            except ImportError:
+                raise HTTPException(status_code=400, detail="7z format requires py7zr library (not installed)")
 
         elif ext == 'rar':
-            raise HTTPException(status_code=400, detail="RAR format requires rarfile library (not installed)")
+            try:
+                import rarfile
+                try:
+                    with rarfile.RarFile(path, 'r') as rf:
+                        if rf.needs_password():
+                            if not password:
+                                raise rarfile.PasswordRequired()
+                            rf.setpassword(password)
+                        for info in rf.infolist():
+                            entries.append({
+                                "name": info.filename,
+                                "size": info.file_size,
+                                "compressed": info.compress_size,
+                                "is_dir": info.isdir(),
+                            })
+                except rarfile.PasswordRequired:
+                    raise HTTPException(status_code=401, detail="password_required")
+                except rarfile.BadRarFile:
+                     raise HTTPException(status_code=401, detail="password_required") # Sometimes bad password surfaces as BadRarFile
+            except ImportError:
+                raise HTTPException(status_code=400, detail="RAR format requires rarfile library (not installed)")
 
         else:
             raise HTTPException(status_code=400, detail="Unsupported archive format")
@@ -176,9 +238,9 @@ async def list_archive(path: str = Query(...)):
 
 
 @router.get("/archive/view")
-async def view_archive_entry(path: str = Query(...), entry: str = Query(...)):
+async def view_archive_entry(path: str = Query(...), entry: str = Query(...), password: Optional[str] = Query(None)):
     """
-    Extract and stream a single file from inside an archive (zip or tar).
+    Extract and stream a single file from inside an archive (zip, tar, 7z, rar).
     Used for previewing images/videos within archives.
     """
     import mimetypes as mt
@@ -198,10 +260,16 @@ async def view_archive_entry(path: str = Query(...), entry: str = Query(...)):
             import zipfile
             if not zipfile.is_zipfile(path):
                 raise HTTPException(status_code=400, detail="Not a valid zip file")
-            with zipfile.ZipFile(path, 'r') as zf:
-                if entry not in zf.namelist():
-                    raise HTTPException(status_code=404, detail="Entry not found in archive")
-                data = zf.read(entry)
+            try:
+                pwd_bytes = password.encode('utf-8') if password else None
+                with zipfile.ZipFile(path, 'r') as zf:
+                    if entry not in zf.namelist():
+                        raise HTTPException(status_code=404, detail="Entry not found in archive")
+                    data = zf.read(entry, pwd=pwd_bytes)
+            except RuntimeError as e:
+                if 'Bad password' in str(e) or 'password required' in str(e).lower():
+                    raise HTTPException(status_code=401, detail="password_required")
+                raise HTTPException(status_code=500, detail=f"Zip error: {e}")
 
         elif basename.endswith('.tar.gz') or basename.endswith('.tar.bz2') or ext in ('tar', 'gz', 'bz2'):
             import tarfile
@@ -216,6 +284,32 @@ async def view_archive_entry(path: str = Query(...), entry: str = Query(...)):
                 raise HTTPException(status_code=404, detail="Entry not found in archive")
             except tarfile.TarError:
                 raise HTTPException(status_code=400, detail="Not a valid tar archive")
+                
+        elif ext == '7z':
+             import py7zr
+             try:
+                 with py7zr.SevenZipFile(path, mode='r', password=password) as z:
+                     all_data = z.read([entry])
+                     if entry not in all_data:
+                          raise HTTPException(status_code=404, detail="Entry not found in archive")
+                     data = all_data[entry].read()
+             except py7zr.exceptions.PasswordRequired:
+                 raise HTTPException(status_code=401, detail="password_required")
+
+        elif ext == 'rar':
+             import rarfile
+             try:
+                 with rarfile.RarFile(path, 'r') as rf:
+                     if rf.needs_password():
+                         if not password:
+                             raise rarfile.PasswordRequired()
+                         rf.setpassword(password)
+                     data = rf.read(entry)
+             except rarfile.PasswordRequired:
+                 raise HTTPException(status_code=401, detail="password_required")
+             except rarfile.BadRarFile:
+                 raise HTTPException(status_code=401, detail="password_required")
+                 
         else:
             raise HTTPException(status_code=400, detail="Unsupported archive format")
 

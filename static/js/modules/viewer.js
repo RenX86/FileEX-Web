@@ -159,7 +159,8 @@ export function openRecentFile(filePath, fileName) {
 export function previewArchiveEntry(archivePath, entryName) {
     currentMediaItem = null;
     const ext = entryName.split('.').pop().toLowerCase();
-    const viewUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entryName)}`;
+    const pwdStr = mediaContainer._archivePassword ? `&password=${encodeURIComponent(mediaContainer._archivePassword)}` : '';
+    const viewUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entryName)}${pwdStr}`;
 
     const backBtn = `<div class="archive-back-bar">
         <button onclick="window.renderArchiveTable(document.getElementById('media-container')._archiveData, document.getElementById('media-container')._archivePath)" class="archive-back-btn">← BACK TO ARCHIVE</button>

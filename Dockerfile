@@ -1,7 +1,7 @@
 FROM python:3.12-alpine
 
-# Pillow build deps (needed on Alpine for image thumbnails)
-RUN apk add --no-cache jpeg-dev zlib-dev gcc musl-dev
+# Pillow build deps and Archive/OpenCV deps
+RUN apk add --no-cache jpeg-dev zlib-dev gcc musl-dev unrar glib libstdc++
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

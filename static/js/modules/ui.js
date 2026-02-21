@@ -31,7 +31,7 @@ export function renderItems(items, append = false) {
         const ext = item.name.split('.').pop().toLowerCase();
         let iconContent;
 
-        if (!item.is_dir && IMAGE_EXTS.includes(ext)) {
+        if (!item.is_dir && (IMAGE_EXTS.includes(ext) || VIDEO_EXTS.includes(ext))) {
             const viewUrl = `/api/files/thumbnail?path=${encodeURIComponent(item.path)}`;
             iconContent = `<img src="${viewUrl}" class="file-thumbnail" alt="${escapeHtml(item.name)}" loading="lazy" onerror="this.onerror=null;this.parentNode.innerHTML='📄'">`;
         } else {
@@ -192,7 +192,8 @@ export function renderArchiveTable(data, archivePath) {
 
         // Download Link
         // /api/archive/view?path=...&entry=...
-        const downloadUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entry.name)}`;
+        const pwdStr = mediaContainer._archivePassword ? `&password=${encodeURIComponent(mediaContainer._archivePassword)}` : '';
+        const downloadUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entry.name)}${pwdStr}`;
         const downloadAction = !entry.is_dir
             ? `<a href="${downloadUrl}" download="${entry.name.split('/').pop()}" class="archive-dl-btn" title="Download" onclick="event.stopPropagation()">${iconDownload}</a>`
             : '';
@@ -235,7 +236,8 @@ export function renderArchiveGallery(data, archivePath) {
 
     for (const entry of mediaEntries) {
         const ext = entry.name.split('.').pop().toLowerCase();
-        const viewUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entry.name)}`;
+        const pwdStr = mediaContainer._archivePassword ? `&password=${encodeURIComponent(mediaContainer._archivePassword)}` : '';
+        const viewUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entry.name)}${pwdStr}`;
         const isVideo = VIDEO_EXTS.includes(ext);
         const shortName = entry.name.split('/').pop();
 

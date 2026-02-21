@@ -14,13 +14,21 @@ export async function fetchFiles(path, skip = 0, limit = 100) {
     return await response.json();
 }
 
-export async function fetchArchive(path) {
-    const url = `${API_BASE}/archive?path=${encodeURIComponent(path)}`;
+export async function fetchArchive(path, password = null) {
+    let url = `${API_BASE}/archive?path=${encodeURIComponent(path)}`;
+    if (password) {
+        url += `&password=${encodeURIComponent(password)}`;
+    }
     const response = await fetch(url);
 
     if (!response.ok) {
         const err = await response.json();
-        throw new Error(err.detail || 'Failed to read archive');
+        const errorMsg = err.detail || 'Failed to read archive';
+        const error = new Error(errorMsg);
+        if (response.status === 401 && errorMsg === 'password_required') {
+            error.name = 'PasswordRequired';
+        }
+        throw error;
     }
 
     return await response.json();
