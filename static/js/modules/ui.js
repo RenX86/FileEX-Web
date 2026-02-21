@@ -110,9 +110,19 @@ export function updateBreadcrumbs(path) {
     const parts = path.split(/[/\\]/).filter(p => p);
     let currentBuild = '';
 
+    // If the original path started with a slash (Linux/Docker absolute path), 
+    // we need to ensure the first build starts with one.
+    const isAbsolutePosix = path.startsWith('/');
+
     parts.forEach((part, index) => {
-        if (index === 0 && part.includes(':')) {
-            currentBuild = part + '/';
+        if (index === 0) {
+            if (part.includes(':')) {
+                currentBuild = part + '/'; // Windows drive
+            } else if (isAbsolutePosix) {
+                currentBuild = '/' + part; // Linux absolute
+            } else {
+                currentBuild = part; // Relative?
+            }
         } else {
             currentBuild = currentBuild ? (currentBuild.endsWith('/') ? currentBuild + part : currentBuild + '/' + part) : part;
         }

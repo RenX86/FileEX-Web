@@ -9,7 +9,7 @@ services:
       - .env
     volumes:
       # Mount your Windows drives here (read-only)
-      - C:\:/mnt/C:ro
-      - D:\:/mnt/D:ro
-      - E:\:/mnt/E:ro
+      - C:\:/mnt/C
+      - D:\:/mnt/D
+      - E:\:/mnt/E
     restart: unless-stopped
