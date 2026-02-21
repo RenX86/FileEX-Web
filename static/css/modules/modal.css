@@ -105,7 +105,7 @@ body.modal-open {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    opacity: 0;
+    opacity: 1;
     transition: all 0.2s ease;
     z-index: 10;
     background: #fff;
@@ -114,9 +114,15 @@ body.modal-open {
     box-shadow: 2px 2px 0 #000;
 }
 
-.file-card:hover .file-delete-btn {
-    opacity: 1;
-    transform: translateY(0);
+@media (hover: hover) and (pointer: fine) {
+    .file-delete-btn {
+        opacity: 0;
+    }
+
+    .file-card:hover .file-delete-btn {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .file-delete-btn:hover {
