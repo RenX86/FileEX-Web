@@ -76,7 +76,7 @@ app.include_router(api_router, prefix="/api")
 
 @app.get("/")
 async def root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+    return templates.TemplateResponse("index.html", {"request": request, "read_only": settings.READ_ONLY})
 
 
 if __name__ == "__main__":

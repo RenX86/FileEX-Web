@@ -24,7 +24,9 @@
         <h1>FileEX</h1>
         <div style="display:flex; gap:10px; align-items:center;">
             <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" id="theme-btn">🌙</button>
+            {% if read_only %}
             <span class="header-badge header-badge--mode">READ ONLY</span>
+            {% endif %}
             <a href="/logout" class="header-badge header-badge--logout">LOGOUT</a>
         </div>
     </header>
