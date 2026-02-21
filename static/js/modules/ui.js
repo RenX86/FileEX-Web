@@ -112,13 +112,15 @@ export function updateBreadcrumbs(path) {
 
     parts.forEach((part, index) => {
         if (index === 0 && part.includes(':')) {
-            currentBuild = part + '\\';
+            currentBuild = part + '/';
         } else {
-            currentBuild = currentBuild ? (currentBuild.endsWith('\\') ? currentBuild + part : currentBuild + '\\' + part) : part;
+            currentBuild = currentBuild ? (currentBuild.endsWith('/') ? currentBuild + part : currentBuild + '/' + part) : part;
         }
 
         const isActive = index === parts.length - 1;
         const activeClass = isActive ? 'active' : '';
+        // Escape backslashes if they exist, but we are building with forward slashes now.
+        // Also escape single quotes for the onclick handler.
         const escapedPath = currentBuild.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
         const clickAction = isActive ? '' : `onclick="window.loadPath('${escapedPath}')"`;
 
