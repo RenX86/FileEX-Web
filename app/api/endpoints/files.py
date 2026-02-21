@@ -74,20 +74,25 @@ async def get_thumbnail(path: str = Query(...)):
              raise HTTPException(status_code=400, detail="Not a supported media type")
 
         img = None
-        # Handle Videos via OpenCV
+        # Handle Videos via FFmpeg
         if ext in VIDEO_EXTENSIONS:
-            import cv2
-            cap = cv2.VideoCapture(path)
-            if not cap.isOpened():
-                raise HTTPException(status_code=500, detail="Failed to open video")
-            ret, frame = cap.read()
-            cap.release()
-            if not ret or frame is None:
-                raise HTTPException(status_code=500, detail="Failed to read video frame")
-            
-            # Convert BGR to RGB for PIL
-            frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            img = Image.fromarray(frame_rgb)
+            import subprocess
+            cmd = [
+                "ffmpeg", 
+                "-y", 
+                "-i", path, 
+                "-vframes", "1", 
+                "-f", "image2pipe", 
+                "-vcodec", "mjpeg", 
+                "-"
+            ]
+            try:
+                result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=5)
+                if result.returncode != 0:
+                     raise HTTPException(status_code=500, detail="Failed to read video frame")
+                img = Image.open(io.BytesIO(result.stdout))
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=str(e))
         else:
             # Handle standard Images
             img = Image.open(path)
@@ -176,6 +181,8 @@ async def list_archive(path: str = Query(...), password: Optional[str] = Query(N
                 import py7zr
                 try:
                     with py7zr.SevenZipFile(path, mode='r', password=password) as z:
+                        if z.needs_password() and not password:
+                            raise py7zr.exceptions.PasswordRequired()
                         for info in z.list():
                             entries.append({
                                 "name": info.filename,
@@ -183,14 +190,19 @@ async def list_archive(path: str = Query(...), password: Optional[str] = Query(N
                                 "compressed": info.uncompressed, # 7z doesn't easily expose individual compressed sizes in list()
                                 "is_dir": info.is_directory,
                             })
-                except py7zr.exceptions.PasswordRequired:
+                except (py7zr.exceptions.PasswordRequired, py7zr.exceptions.Bad7zFile):
                     raise HTTPException(status_code=401, detail="password_required")
+                except Exception as e:
+                    if 'Corrupt' in str(e) or 'LZMAError' in str(type(e)):
+                        raise HTTPException(status_code=401, detail="password_required")
+                    raise e
             except ImportError:
                 raise HTTPException(status_code=400, detail="7z format requires py7zr library (not installed)")
 
         elif ext == 'rar':
             try:
                 import rarfile
+                rarfile.UNRAR_TOOL = "bsdtar"
                 try:
                     with rarfile.RarFile(path, 'r') as rf:
                         if rf.needs_password():
@@ -289,15 +301,22 @@ async def view_archive_entry(path: str = Query(...), entry: str = Query(...), pa
              import py7zr
              try:
                  with py7zr.SevenZipFile(path, mode='r', password=password) as z:
+                     if z.needs_password() and not password:
+                         raise py7zr.exceptions.PasswordRequired()
                      all_data = z.read([entry])
                      if entry not in all_data:
                           raise HTTPException(status_code=404, detail="Entry not found in archive")
                      data = all_data[entry].read()
-             except py7zr.exceptions.PasswordRequired:
+             except (py7zr.exceptions.PasswordRequired, py7zr.exceptions.Bad7zFile):
                  raise HTTPException(status_code=401, detail="password_required")
+             except Exception as e:
+                 if 'Corrupt' in str(e) or 'LZMAError' in str(type(e)):
+                     raise HTTPException(status_code=401, detail="password_required")
+                 raise e
 
         elif ext == 'rar':
              import rarfile
+             rarfile.UNRAR_TOOL = "bsdtar"
              try:
                  with rarfile.RarFile(path, 'r') as rf:
                      if rf.needs_password():

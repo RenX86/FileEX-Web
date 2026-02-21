@@ -1,7 +1,7 @@
 FROM python:3.12-alpine
 
-# Pillow build deps and Archive/OpenCV deps
-RUN apk add --no-cache jpeg-dev zlib-dev gcc musl-dev unrar glib libstdc++
+# Install system dependencies for Archive extraction (bsdtar/p7zip) and Video thumbnails (ffmpeg)
+RUN apk add --no-cache ffmpeg libarchive-tools p7zip
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1
@@ -9,8 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    && apk del gcc musl-dev
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
