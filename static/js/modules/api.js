@@ -34,3 +34,32 @@ export async function deleteItemAPI(path) {
         throw new Error(err.detail || 'Failed to delete item');
     }
 }
+
+export async function fetchTrash() {
+    const response = await fetch(`${API_BASE}/trash`);
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || 'Failed to fetch trash');
+    }
+    return await response.json();
+}
+
+export async function restoreItemAPI(trashId) {
+    const response = await fetch(`${API_BASE}/trash/restore?trash_id=${encodeURIComponent(trashId)}`, {
+        method: 'POST'
+    });
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || 'Failed to restore item');
+    }
+}
+
+export async function permanentDeleteItemAPI(trashId) {
+    const response = await fetch(`${API_BASE}/trash/permanent?trash_id=${encodeURIComponent(trashId)}`, {
+        method: 'DELETE'
+    });
+    if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || 'Failed to permanently delete item');
+    }
+}

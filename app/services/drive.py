@@ -3,7 +3,11 @@ import platform
 import pathlib
 from typing import List, Dict, Any, Union
 from app.utils.formatters import format_size, format_timestamp
-from send2trash import send2trash
+import shutil
+import json
+import uuid
+from datetime import datetime
+from app.core.config import settings
 
 class DriveService:
     @staticmethod
@@ -125,17 +129,152 @@ class DriveService:
         return items
 
     @staticmethod
+    def _get_trash_dir() -> str:
+        """Ensure TRASH_DIR exists and return its absolute path."""
+        trash_dir = os.path.abspath(settings.TRASH_DIR)
+        os.makedirs(trash_dir, exist_ok=True)
+        return trash_dir
+
+    @staticmethod
     def delete_file(path: str) -> None:
         """
-        Send a file or directory to the recycle bin.
+        Move a file or directory to the app-local Trash directory along with metadata.
         """
         if not os.path.exists(path):
             raise FileNotFoundError(f"Path not found: {path}")
             
+        trash_dir = DriveService._get_trash_dir()
+        
         # Security check is done in the API endpoint before calling this
         try:
-            send2trash(path)
+            # Generate a unique ID to prevent filename collisions in Trash
+            trash_id = str(uuid.uuid4())
+            original_name = os.path.basename(path)
+            trashed_file_name = f"{trash_id}_{original_name}"
+            trashed_file_path = os.path.join(trash_dir, trashed_file_name)
+            meta_file_path = os.path.join(trash_dir, f"{trash_id}.meta.json")
+            
+            # Save metadata
+            metadata = {
+                "id": trash_id,
+                "original_path": os.path.abspath(path),
+                "original_name": original_name,
+                "deleted_at": datetime.now().isoformat(),
+                "is_dir": os.path.isdir(path)
+            }
+            
+            # Move the actual file/folder
+            shutil.move(path, trashed_file_path)
+            
+            # Write metadata file after successful move
+            with open(meta_file_path, "w", encoding="utf-8") as f:
+                json.dump(metadata, f, indent=4)
+                
         except Exception as e:
-            raise Exception(f"Failed to delete item: {str(e)}")
+            raise Exception(f"Failed to move item to trash: {str(e)}")
+
+    @staticmethod
+    def list_trash() -> List[Dict[str, Any]]:
+        """
+        List all items in the Trash directory based on metadata files.
+        """
+        trash_dir = DriveService._get_trash_dir()
+        items = []
+        
+        try:
+            for filename in os.listdir(trash_dir):
+                if filename.endswith(".meta.json"):
+                    meta_path = os.path.join(trash_dir, filename)
+                    try:
+                        with open(meta_path, "r", encoding="utf-8") as f:
+                            meta = json.load(f)
+                        
+                        trashed_file_path = os.path.join(trash_dir, f"{meta['id']}_{meta['original_name']}")
+                        
+                        # Add stats if the file still exists in trash
+                        if os.path.exists(trashed_file_path):
+                            stat = os.stat(trashed_file_path)
+                            meta["size"] = format_size(stat.st_size) if not meta.get("is_dir", False) else "-"
+                            items.append(meta)
+                        else:
+                            # Orphaned metadata file
+                            os.remove(meta_path)
+                    except Exception:
+                        continue
+        except FileNotFoundError:
+             pass # Trash dir newly created or doesn't exist
+             
+        # Sort by deletion time descending (newest first)
+        items.sort(key=lambda x: x.get("deleted_at", ""), reverse=True)
+        
+        # Format dates for UI
+        for item in items:
+             if "deleted_at" in item:
+                  try:
+                       dt = datetime.fromisoformat(item["deleted_at"])
+                       item["deleted_at_fmt"] = dt.strftime("%Y-%m-%d %H:%M:%S")
+                  except:
+                       item["deleted_at_fmt"] = item["deleted_at"]
+                       
+        return items
+
+    @staticmethod
+    def restore_file(trash_id: str) -> None:
+        """
+        Restore a file from Trash to its original location.
+        """
+        trash_dir = DriveService._get_trash_dir()
+        meta_path = os.path.join(trash_dir, f"{trash_id}.meta.json")
+        
+        if not os.path.exists(meta_path):
+             raise FileNotFoundError(f"Trash metadata not found for ID: {trash_id}")
+             
+        with open(meta_path, "r", encoding="utf-8") as f:
+             meta = json.load(f)
+             
+        trashed_file_path = os.path.join(trash_dir, f"{trash_id}_{meta['original_name']}")
+        original_path = meta['original_path']
+        
+        if not os.path.exists(trashed_file_path):
+             raise FileNotFoundError(f"Trashed file not found in Trash folder")
+             
+        # Ensure target directory exists
+        os.makedirs(os.path.dirname(original_path), exist_ok=True)
+        
+        # Move back
+        try:
+             shutil.move(trashed_file_path, original_path)
+             # Remove metadata
+             os.remove(meta_path)
+        except Exception as e:
+             raise Exception(f"Failed to restore item: {str(e)}")
+
+    @staticmethod
+    def permanent_delete(trash_id: str) -> None:
+        """
+        Permanently delete a file from Trash.
+        """
+        trash_dir = DriveService._get_trash_dir()
+        meta_path = os.path.join(trash_dir, f"{trash_id}.meta.json")
+        
+        if not os.path.exists(meta_path):
+             raise FileNotFoundError(f"Trash metadata not found for ID: {trash_id}")
+             
+        with open(meta_path, "r", encoding="utf-8") as f:
+             meta = json.load(f)
+             
+        trashed_file_path = os.path.join(trash_dir, f"{trash_id}_{meta['original_name']}")
+        
+        try:
+             if os.path.exists(trashed_file_path):
+                  if meta.get("is_dir", False):
+                       shutil.rmtree(trashed_file_path)
+                  else:
+                       os.remove(trashed_file_path)
+             # Remove metadata
+             if os.path.exists(meta_path):
+                 os.remove(meta_path)
+        except Exception as e:
+             raise Exception(f"Failed to permanently delete item: {str(e)}")
 
 drive_service = DriveService()

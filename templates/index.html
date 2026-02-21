@@ -1,8 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div id="breadcrumb" class="breadcrumb">
-    <span class="crumb" onclick="loadPath('')">Home</span>
+<div class="header-actions"
+    style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+    <div id="breadcrumb" class="breadcrumb" style="margin-bottom:0;">
+        <span class="crumb" onclick="loadPath('')">Home</span>
+    </div>
+    <button id="trash-btn" class="btn"
+        style="background:var(--c-blue); color:#000; font-weight:bold; padding:0.5rem 1rem; border:2px solid #000; box-shadow:3px 3px 0 #000; cursor:pointer;"
+        onclick="window.loadTrash()">🗑️ Trash</button>
 </div>
 
 <div id="file-list" class="file-list">

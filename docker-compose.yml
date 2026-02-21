@@ -12,4 +12,6 @@ services:
       - C:\:/mnt/C
       - D:\:/mnt/D
       - E:\:/mnt/E
+      # Mount the Trash directory to persist deleted files to the host
+      - ./Trash:/app/Trash
     restart: unless-stopped

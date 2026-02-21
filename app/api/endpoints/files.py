@@ -231,7 +231,7 @@ async def view_archive_entry(path: str = Query(...), entry: str = Query(...)):
 @router.delete("/delete")
 async def delete_file(path: str = Query(...)):
     """
-    Delete a file or list of files (move to trash).
+    Delete a file or list of files (move to app-local trash).
     """
     if settings.READ_ONLY:
          raise HTTPException(status_code=405, detail="Delete not allowed in Read-Only mode")
@@ -242,9 +242,6 @@ async def delete_file(path: str = Query(...)):
         if not os.path.exists(path):
             raise HTTPException(status_code=404, detail="Item not found")
             
-        if not os.path.isfile(path):
-            raise HTTPException(status_code=400, detail="Only files can be deleted")
-            
         DriveService.delete_file(path)
         return {"detail": "Item moved to trash"}
         
@@ -252,3 +249,45 @@ async def delete_file(path: str = Query(...)):
         raise HTTPException(status_code=403, detail="Permission denied")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete item: {str(e)}")
+
+@router.get("/trash", response_model=List[Dict[str, Any]])
+async def list_trash():
+    """
+    List all items currently in the Trash.
+    """
+    try:
+        return DriveService.list_trash()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list trash: {str(e)}")
+
+@router.post("/trash/restore")
+async def restore_trash_item(trash_id: str = Query(...)):
+    """
+    Restore an item from the Trash.
+    """
+    if settings.READ_ONLY:
+         raise HTTPException(status_code=405, detail="Restore not allowed in Read-Only mode")
+         
+    try:
+        DriveService.restore_file(trash_id)
+        return {"detail": "Item restored successfully"}
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to restore item: {str(e)}")
+
+@router.delete("/trash/permanent")
+async def permanent_delete_trash_item(trash_id: str = Query(...)):
+    """
+    Permanently delete an item from the Trash.
+    """
+    if settings.READ_ONLY:
+         raise HTTPException(status_code=405, detail="Permanent delete not allowed in Read-Only mode")
+         
+    try:
+        DriveService.permanent_delete(trash_id)
+        return {"detail": "Item permanently deleted"}
+    except FileNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to permanently delete item: {str(e)}")

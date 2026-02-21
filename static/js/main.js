@@ -1,4 +1,4 @@
-import { loadPath, handleItemClick, confirmDelete, deleteItem, clearRecentFiles } from './modules/actions.js';
+import { loadPath, handleItemClick, confirmDelete, deleteItem, clearRecentFiles, loadTrash, restoreTrashItem, permanentDeleteTrashItem, renderTrashItems } from './modules/actions.js';
 import { closeModal, openRecentFile, previewArchiveEntry, playFeedVideo, navigateMedia } from './modules/viewer.js';
 import { renderArchiveTable, renderArchiveGallery } from './modules/ui.js';
 
@@ -15,6 +15,9 @@ window.renderArchiveGallery = renderArchiveGallery;
 window.previewArchiveEntry = previewArchiveEntry;
 window.playFeedVideo = playFeedVideo;
 window.navigateMedia = navigateMedia;
+window.loadTrash = loadTrash;
+window.restoreTrashItem = restoreTrashItem;
+window.permanentDeleteTrashItem = permanentDeleteTrashItem;
 
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {

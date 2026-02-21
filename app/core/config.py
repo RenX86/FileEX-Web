@@ -28,6 +28,9 @@ class Settings(BaseSettings):
     # Hardcoded Read-Only Mode
     READ_ONLY: bool = os.getenv("READ_ONLY", "True").lower() == "true"
     
+    # Path to the app-local trash directory
+    TRASH_DIR: str = os.getenv("TRASH_DIR", "./Trash")
+    
     class Config:
         env_file = ".env"
         extra = "ignore" # Allow extra fields in env file or ignored fields
