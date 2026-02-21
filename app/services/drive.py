@@ -86,12 +86,19 @@ class DriveService:
         return drives
 
     @staticmethod
-    def list_directory(path: str) -> List[Dict[str, Any]]:
+    def list_directory(path: str, skip: int = 0, limit: int = 100) -> Dict[str, Any]:
         """
-        List contents of a directory.
+        List contents of a directory with pagination.
         """
         if not path:
-             return DriveService.get_drives()
+             drives = DriveService.get_drives()
+             return {
+                 "items": drives,
+                 "total": len(drives),
+                 "has_more": False,
+                 "skip": skip,
+                 "limit": limit
+             }
         
         # Security Check
         from app.utils.security import validate_path
@@ -103,30 +110,45 @@ class DriveService:
         if not os.path.isdir(path):
              raise NotADirectoryError(f"Path is not a directory: {path}")
 
-        items = []
         try:
+            # First, quickly gather all directory entry objects without stat'ing them broadly
+            entries = []
             with os.scandir(path) as it:
                 for entry in it:
-                    try:
-                        stat = entry.stat()
-                        item = {
-                            "name": entry.name,
-                            "path": entry.path,
-                            "is_dir": entry.is_dir(),
-                            "size": format_size(stat.st_size) if not entry.is_dir() else "-",
-                            "modified": format_timestamp(stat.st_mtime),
-                            "type": "folder" if entry.is_dir() else "file"
-                        }
-                        items.append(item)
-                    except PermissionError:
-                        # Skip files we don't have permission to access
-                        continue
+                     entries.append(entry)
         except PermissionError:
             raise PermissionError(f"Permission denied: {path}")
 
         # Sort: Directories first, then files. Both alphabetical.
-        items.sort(key=lambda x: (not x["is_dir"], x["name"].lower()))
-        return items
+        entries.sort(key=lambda x: (not x.is_dir(), x.name.lower()))
+        
+        total = len(entries)
+        paginated_entries = entries[skip : skip + limit]
+        
+        items = []
+        for entry in paginated_entries:
+            try:
+                stat = entry.stat()
+                item = {
+                    "name": entry.name,
+                    "path": entry.path,
+                    "is_dir": entry.is_dir(),
+                    "size": format_size(stat.st_size) if not entry.is_dir() else "-",
+                    "modified": format_timestamp(stat.st_mtime),
+                    "type": "folder" if entry.is_dir() else "file"
+                }
+                items.append(item)
+            except PermissionError:
+                # Skip files we don't have permission to stat
+                continue
+
+        return {
+            "items": items,
+            "total": total,
+            "has_more": skip + limit < total,
+            "skip": skip,
+            "limit": limit
+        }
 
     @staticmethod
     def _get_trash_dir() -> str:

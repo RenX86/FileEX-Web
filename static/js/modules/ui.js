@@ -6,17 +6,21 @@ export const breadcrumbContainer = document.getElementById('breadcrumb');
 export const mediaContainer = document.getElementById('media-container');
 export const modal = document.getElementById('media-modal');
 
-export function renderItems(items) {
-    listContainer.innerHTML = '';
+export function renderItems(items, append = false) {
+    if (!append) {
+        listContainer.innerHTML = '';
+    }
 
-    if (items.length === 0) {
+    if (items.length === 0 && !append) {
         listContainer.innerHTML = '<div class="loading" style="background:var(--card-bg);color:var(--text-color);">📂 NO FILES HERE</div>';
         return;
     }
 
+    const startIndex = listContainer.querySelectorAll('.file-card').length;
+
     items.forEach((item, index) => {
         const card = document.createElement('div');
-        const colorIndex = (index % 5) + 1;
+        const colorIndex = ((startIndex + index) % 5) + 1;
         const colorClass = `color-${colorIndex}`;
 
         card.className = `file-card ${colorClass}${item.type === 'drive' ? ' drive-card' : ''}`;
@@ -95,7 +99,7 @@ export function renderItems(items) {
             </div>` : ''}
         `;
 
-        card.style.animationDelay = `${index * 30}ms`;
+        card.style.animationDelay = `${(index % 20) * 30}ms`;
         listContainer.appendChild(card);
     });
 }

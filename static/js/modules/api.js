@@ -1,7 +1,9 @@
 import { API_BASE } from './config.js';
 
-export async function fetchFiles(path) {
-    const url = path ? `${API_BASE}/list?path=${encodeURIComponent(path)}` : `${API_BASE}/list`;
+export async function fetchFiles(path, skip = 0, limit = 100) {
+    let url = path ? `${API_BASE}/list?path=${encodeURIComponent(path)}` : `${API_BASE}/list`;
+    const separator = url.includes('?') ? '&' : '?';
+    url += `${separator}skip=${skip}&limit=${limit}`;
     const response = await fetch(url);
 
     if (!response.ok) {

@@ -12,8 +12,8 @@ from app.core.constants import IMAGE_EXTENSIONS, ARCHIVE_EXTENSIONS
 
 router = APIRouter()
 
-@router.get("/list", response_model=List[Dict[str, Any]])
-async def list_files(path: Optional[str] = Query(None)):
+@router.get("/list")
+async def list_files(path: Optional[str] = Query(None), skip: int = Query(0, ge=0), limit: int = Query(100, ge=1)):
     """
     List files in a directory. 
     If path is None, returns available drives (or root on Linux).
@@ -27,7 +27,7 @@ async def list_files(path: Optional[str] = Query(None)):
         if path and path.endswith(":") and platform.system() == "Windows":
             path += "\\"
 
-        return DriveService.list_directory(path)
+        return DriveService.list_directory(path, skip=skip, limit=limit)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Path not found")
     except PermissionError:

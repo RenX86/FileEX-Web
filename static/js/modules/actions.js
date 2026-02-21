@@ -25,6 +25,11 @@ window.permanentDeleteTrashItem = permanentDeleteTrashItem;
 
 let currentPath = '';
 let currentItems = [];
+let currentSkip = 0;
+const currentLimit = 100;
+let hasMoreFiles = false;
+let isLoadingMore = false;
+let scrollObserver = null;
 
 export function getCurrentItems() {
     return currentItems;
@@ -35,16 +40,85 @@ export async function loadPath(path) {
     updateBreadcrumbs(path);
     listContainer.innerHTML = '<div class="loading">LOADING...</div>';
 
+    currentSkip = 0;
+    hasMoreFiles = false;
+    isLoadingMore = false;
+    currentItems = [];
+
+    const oldSentinel = document.getElementById('scroll-sentinel');
+    if (oldSentinel) oldSentinel.remove();
+
     try {
-        const items = await fetchFiles(path);
-        currentItems = items; // Store for navigation
-        renderItems(items);
-        if (items.length > 0 && items[0].type === 'drive') {
+        const data = await fetchFiles(path, currentSkip, currentLimit);
+        currentItems = data.items;
+        hasMoreFiles = data.has_more;
+        currentSkip += currentLimit;
+
+        listContainer.innerHTML = '';
+        renderItems(data.items, false);
+
+        if (data.items.length > 0 && data.items[0].type === 'drive') {
             renderRecentFiles(getRecentFiles());
         }
+
+        setupScrollSentinel();
     } catch (error) {
         listContainer.innerHTML = `<div class="loading" style="background:var(--c-pink); color:#000;">ERROR: ${error.message}</div>`;
     }
+}
+
+export async function loadMoreFiles() {
+    if (isLoadingMore || !hasMoreFiles || currentPath === 'TRASH') return;
+
+    isLoadingMore = true;
+    const loader = document.createElement('div');
+    loader.className = 'loading loading-more';
+    loader.style.gridColumn = '1 / -1';
+    loader.style.padding = '1rem';
+    loader.innerText = 'LOADING MORE...';
+    listContainer.appendChild(loader);
+
+    try {
+        const data = await fetchFiles(currentPath, currentSkip, currentLimit);
+        currentItems = currentItems.concat(data.items);
+        hasMoreFiles = data.has_more;
+        currentSkip += currentLimit;
+
+        loader.remove();
+        renderItems(data.items, true);
+
+        if (!hasMoreFiles) {
+            const sentinel = document.getElementById('scroll-sentinel');
+            if (sentinel) sentinel.remove();
+        }
+    } catch (error) {
+        loader.innerText = `ERROR: ${error.message}`;
+        setTimeout(() => loader.remove(), 2000);
+    } finally {
+        isLoadingMore = false;
+    }
+}
+
+function setupScrollSentinel() {
+    if (scrollObserver) {
+        scrollObserver.disconnect();
+    }
+
+    if (!hasMoreFiles) return;
+
+    let sentinel = document.createElement('div');
+    sentinel.id = 'scroll-sentinel';
+    sentinel.style.height = '10px';
+    sentinel.style.gridColumn = '1 / -1';
+    listContainer.parentNode.insertBefore(sentinel, listContainer.nextSibling);
+
+    scrollObserver = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting) {
+            loadMoreFiles();
+        }
+    }, { rootMargin: '200px' });
+
+    scrollObserver.observe(sentinel);
 }
 
 export function handleItemClick(item) {
