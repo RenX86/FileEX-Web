@@ -10,7 +10,7 @@ param(
 
 # Set the directory where your docker-compose.yaml is located
 # Uses the script's own directory to ensure it works regardless of where it's called from
-$ComposeDir = "C:\Users\Master\Documents\GitHub\FileEX-Web"
+$ComposeDir = "Change To Your Docker Compose Directory"
 
 # Change to the compose directory
 Push-Location $ComposeDir  
