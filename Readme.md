@@ -1,112 +1,128 @@
-# 📁 FileEX — Local Network File Explorer
+# 📁 FileEX - Blazing Fast Network File Explorer
 
-A blazing-fast, lightweight web application that allows you to browse your host computer's local file system from any device on your Wi-Fi network. 
+FileEX is a lightweight, high-performance web-based file explorer designed for local networks. It allows you to browse, preview, and manage your host computer's files from any device (phone, tablet, or another PC) on your Wi-Fi.
 
-Built with a minimal footprint: no heavy frontend frameworks, no complex build steps, just raw performance.
-
-## 🚀 Tech Stack
-
-**Backend:**
-* **[FastAPI](https://fastapi.tiangolo.com/):** Modern, high-performance web framework for building APIs.
-* **[Uvicorn](https://www.uvicorn.org/):** Lightning-fast ASGI web server.
-* **Python `os` / `pathlib`:** For native, deeply-integrated file system reading.
-
-**Frontend:**
-* **HTML5:** Semantic structure.
-* **CSS3:** Clean, neo-brutalist styling with Space Grotesk font.
-* **Vanilla JavaScript (ES6+):** Utilizes the native `fetch()` API for asynchronous lazy-loading of directories.
+Built for speed and simplicity, FileEX avoids heavy frontend frameworks, delivering a "blazing fast" experience through **FastAPI** and **Vanilla JavaScript**.
 
 ---
 
-## 📂 Project Structure
+## ✨ Key Features
 
-```text
-FileEX-Web/
-│
-├── app/                         # Backend Source Code
-│   ├── __init__.py
-│   ├── main.py                  # Application Entry Point
-│   │
-│   ├── core/                    # Core Configuration & Security
-│   │   ├── __init__.py
-│   │   ├── config.py            # Environment variables & settings
-│   │   └── constants.py         # Shared constants (file extensions)
-│   │
-│   ├── api/                     # API Routes (Endpoints)
-│   │   ├── __init__.py
-│   │   ├── router.py            # API router aggregator
-│   │   └── endpoints/
-│   │       ├── __init__.py
-│   │       ├── files.py         # File browsing/streaming/thumbnail
-│   │       └── auth.py          # PIN authentication routes
-│   │
-│   ├── services/                # Business Logic Layer
-│   │   ├── __init__.py
-│   │   └── drive.py             # File system interaction logic
-│   │
-│   └── utils/                   # Utility Functions
-│       ├── __init__.py
-│       ├── formatters.py        # Size/Date string formatting
-│       └── security.py          # Path validation & traversal protection
-│
-├── templates/                   # HTML Templates (Jinja2)
-│   ├── base.html                # Base layout
-│   ├── index.html               # Main file explorer dashboard
-│   └── login.html               # PIN authentication page
-│
-├── static/                      # Static Assets
-│   ├── css/
-│   │   └── style.css            # Neo-brutalist theme styles
-│   └── js/
-│       └── app.js               # UI Logic (vanilla JS)
-│
-├── .env.example                 # Environment variable template
-├── .gitignore
-├── requirements.txt             # Pinned Python dependencies
-└── Readme.md
+### 🖼️ Real-Time Media Previews
+* **Dynamic Thumbnails:** Instant 100x100 previews for images and videos using **Pillow** and **FFmpeg**.
+* **Media Viewer:** High-performance modal for viewing images and streaming videos directly in the browser.
+* **Touch & Keyboard Support:** Navigate through media in a folder using Arrow keys or touch-swipe gestures.
+
+### 📦 Advanced Archive Engine
+* **On-the-Fly Browsing:** Explore contents of `zip`, `7z`, `rar`, and `tar` files without extracting them.
+* **Partial Extraction:** Stream or download a single file (like an image inside a 2GB zip) instantly.
+* **Encrypted Archives:** Full support for password-protected 7z, rar, and zip files.
+* **Gallery Mode:** View a thumbnail gallery of all media contained within an archive.
+
+### 🗑️ Custom Trash System
+* **Safe Deletion:** Files aren't permanently deleted; they are moved to a local `Trash` folder with detailed metadata.
+* **One-Click Restore:** Restore items to their original location with a single click, even across different drives.
+* **Metadata Tracking:** Records original path and deletion timestamp.
+
+### 🔒 Security First
+* **PIN Authentication:** Secure your file system with a configurable session-based PIN.
+* **Read-Only Mode:** A global toggle to disable all write/delete operations for guest access.
+* **Path Traversal Protection:** Rigorous validation prevents access to system-critical folders or directory traversal attacks.
+* **Restricted Paths:** Hardcoded blocks for sensitive OS directories (e.g., `C:\Windows`, `/etc`).
+
+### ⚡ Performance Optimized
+* **Infinite Scroll:** Paginated directory listings for fast navigation through folders with thousands of files.
+* **Low Footprint:** No build tools, no `node_modules` on the frontend, and minimal backend dependencies.
+* **GZip Compression:** All API responses are compressed to save bandwidth on slow Wi-Fi.
+
+---
+
+## 🛠️ Tech Stack
+
+* **Backend:** [FastAPI](https://fastapi.tiangolo.com/) (Python 3.9+), [Uvicorn](https://www.uvicorn.org/), [Pillow](https://python-pillow.org/), [FFmpeg](https://ffmpeg.org/).
+* **Frontend:** Vanilla JavaScript (ES6 Modules), HTML5, CSS3 (Modern Flexbox/Grid).
+
+---
+
+## 🚀 Quick Start
+
+### 1. Prerequisites
+* **Python 3.9+**
+* **FFmpeg** (Required for video thumbnails and streaming).
+    * **Windows:** `choco install ffmpeg` or download from [ffmpeg.org](https://ffmpeg.org/).
+    * **Linux:** `sudo apt install ffmpeg`.
+
+### 2. Local Installation
+```bash
+# Clone the repository
+git clone https://github.com/RenX86/FileEX-Web.git
+cd FileEX-Web
+
+# Create and activate virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Configure environment
+cp .env.example .env
+# Edit .env to set your SECRET_KEY and ACCESS_PIN
 ```
 
-## 🔒 Security Features
+### 3. Run Application
+**Windows (Convenience Script):**
+```powershell
+./FileEX.ps1
+```
+**Manual:**
+```bash
+uvicorn app.main:app --host 0.0.0.0 --port 6979 --reload
+```
 
-1. **PIN Authentication:** Session-based PIN gate protects all routes. Configure via `ACCESS_PIN` in `.env`.
-2. **Read-Only Mode:** Middleware blocks all write HTTP methods (hardcoded `READ_ONLY=True`).
-3. **Restricted Paths:** System-critical directories (Windows, Program Files, /etc, /sys, etc.) are blocked.
-4. **Path Traversal Protection:** Uses `os.path.realpath()` to detect and reject traversal/symlink attacks.
-5. **XSS Prevention:** All filenames are sanitized before DOM injection via `escapeHtml()`.
+---
 
-## ⚡ Quick Start
+## 🐳 Docker Deployment
 
-1. Clone the repo and create a virtual environment:
-   ```bash
-   git clone https://github.com/RenX86/FileEX-Web.git
-   cd FileEX-Web
-   python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-   ```
+FileEX is fully Docker-ready for isolated environments.
 
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
+**Using Docker Compose:**
+```bash
+docker-compose up -d
+```
+The application will be available at `http://localhost:6979`. You can map your host drives to the `/mnt` directory in the container via `docker-compose.yml`.
 
-3. Copy and configure environment:
-   ```bash
-   cp .env.example .env
-   # Edit .env to set your SECRET_KEY and ACCESS_PIN
-   ```
+---
 
-4. Run the server:
-   ```bash
-   uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-   ```
+## ⚙️ Configuration (.env)
 
-5. Open `http://<your-ip>:8000` from any device on your network.
+| Variable | Description | Default |
+| :--- | :--- | :--- |
+| `SECRET_KEY` | Key for session encryption (Required). | - |
+| `ACCESS_PIN` | PIN required to access the dashboard. | `1234` |
+| `READ_ONLY` | If `True`, blocks all delete/restore actions. | `True` |
+| `TRASH_DIR` | Path to store deleted files and metadata. | `./Trash` |
+| `DEBUG` | Enables FastAPI debug mode. | `False` |
 
-## 🏗️ Architecture Highlights
+---
 
-1. **Separation of Concerns:** Logic is split into `core` (config), `api` (routes), and `services` (logic).
-2. **Proper Python Packaging:** All directories have `__init__.py` files.
-3. **Cross-Platform:** Drive detection handles both Windows and Unix systems.
-4. **Zero Build Tooling:** No npm, no webpack — just raw HTML/CSS/JS.
-5. **Shared Constants:** File extension lists defined once in `constants.py` and `app.js`.
-6. **Environment Configuration:** `.env` support ensures sensitive data isn't hardcoded.
+## 📂 Project Architecture
+
+```text
+app/
+├── api/             # API Router & Endpoints (Auth, Files, Archives)
+├── core/            # Config, Constants, and Security Middleware
+├── services/        # DriveService (FS logic, Trash, Drives)
+├── utils/           # Security validation & Formatters
+static/
+├── js/modules/      # ES6 Modules (Actions, API, UI, Viewer)
+├── css/modules/     # Modular CSS (Grid, Cards, Modals)
+templates/           # Jinja2 Templates (Base, Login, Dashboard)
+```
+
+---
+
+## ⚖️ License & Disclaimer
+This tool is intended for **local network use only**. Exposing this to the public internet without additional security layers (like a Reverse Proxy with SSL) is not recommended.
+
+Developed with ❤️ for speed.

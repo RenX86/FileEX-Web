@@ -1,19 +1,18 @@
 from pydantic_settings import BaseSettings
 import os
-from dotenv import load_dotenv
 import secrets
 from pathlib import Path
 
-load_dotenv()
+
 
 class Settings(BaseSettings):
     """
     Application settings.
     """
-    APP_NAME: str = os.getenv("APP_NAME")
-    DEBUG: bool = os.getenv("DEBUG").lower() == "true"
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
-    ACCESS_PIN: str = os.getenv("ACCESS_PIN")
+    APP_NAME: str = ("APP_NAME")
+    DEBUG: bool = ("DEBUG").lower() == "true"
+    SECRET_KEY: str = ("SECRET_KEY")
+    ACCESS_PIN: str = ("ACCESS_PIN")
     
     # Security: Paths that are strictly forbidden
     RESTRICTED_PATHS: list = [
@@ -26,10 +25,10 @@ class Settings(BaseSettings):
     ]
     
     # Hardcoded Read-Only Mode
-    READ_ONLY: bool = os.getenv("READ_ONLY", "True").lower() == "true"
+    READ_ONLY: bool = ("READ_ONLY").lower() == "true"
     
     # Path to the app-local trash directory
-    TRASH_DIR: str = os.getenv("TRASH_DIR", "./Trash")
+    TRASH_DIR: str = ("TRASH_DIR")
     
     class Config:
         env_file = ".env"
