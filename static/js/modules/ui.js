@@ -1,5 +1,5 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, ARCHIVE_EXTS } from './config.js?v=6';
-import { escapeHtml } from './utils.js?v=6';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, ARCHIVE_EXTS } from './config.js?v=7';
+import { escapeHtml } from './utils.js?v=7';
 
 export const listContainer = document.getElementById('file-list');
 export const breadcrumbContainer = document.getElementById('breadcrumb');
@@ -154,11 +154,9 @@ export function renderArchiveTable(data, archivePath) {
 
     const galleryBtn = mediaCount > 0 ? `<button class="archive-mode-btn active">📋 LIST</button><button class="archive-mode-btn" onclick="window.renderArchiveGallery(document.getElementById('media-container')._archiveData, document.getElementById('media-container')._archivePath)">🖼️ GALLERY (${mediaCount})</button>` : '';
 
-    // Icons
-    const iconFolder = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
-    const iconFile = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`;
-    const iconEye = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
-    const iconDownload = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>`;
+    const pwdStr = mediaContainer._archivePassword ? `&password=${encodeURIComponent(mediaContainer._archivePassword)}` : '';
+    const downloadArchiveUrl = `${API_BASE}/download?path=${encodeURIComponent(archivePath)}`;
+    const downloadBtn = `<a href="${downloadArchiveUrl}" download="${escapeHtml(data.filename)}" class="archive-mode-btn" style="color:var(--c-primary); border-color:var(--c-primary);" title="Download Entire Archive">↓ DOWNLOAD</a>`;
 
     let html = `
         <div class="archive-viewer">
@@ -166,11 +164,16 @@ export function renderArchiveTable(data, archivePath) {
                 <h2>📦 ${escapeHtml(data.filename)}</h2>
                 <div class="archive-header-actions">
                     ${galleryBtn}
+                    ${downloadBtn}
                     <span class="archive-stats">${data.total_dirs} folders · ${data.total_files} files</span>
                 </div>
             </div>
+            <div class="archive-search-bar">
+                <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input type="text" id="archive-search-input" placeholder="Filter archive contents..." oninput="window.filterArchiveContents(this.value)">
+            </div>
             <div class="archive-table-wrap">
-                <table class="archive-table">
+                <table class="archive-table" id="archive-entries-table">
                     <thead>
                         <tr><th style="width:60%">Name</th><th>Size</th><th>Comp.</th><th style="width:50px"></th></tr>
                     </thead>
@@ -180,27 +183,26 @@ export function renderArchiveTable(data, archivePath) {
         const entryExt = entry.name.split('.').pop().toLowerCase();
         const isPreviewable = !entry.is_dir && previewableExts.includes(entryExt);
 
-        let icon = entry.is_dir ? iconFolder : iconFile;
-        // If previewable, use Eye icon? Or just keep file icon and make it clickable? 
-        // Let's use Eye for distinct action, or just File icon with hover effect.
-        // User asked for better icons.
+        let icon = getFileIcon(entry.is_dir, entryExt);
 
         const clickClass = isPreviewable ? 'archive-previewable' : '';
         const clickAttr = isPreviewable
             ? `onclick="window.previewArchiveEntry('${escapedPath}', '${entry.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')"`
             : '';
 
-        // Download Link
-        // /api/archive/view?path=...&entry=...
-        const pwdStr = mediaContainer._archivePassword ? `&password=${encodeURIComponent(mediaContainer._archivePassword)}` : '';
         const downloadUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entry.name)}${pwdStr}`;
         const downloadAction = !entry.is_dir
-            ? `<a href="${downloadUrl}" download="${entry.name.split('/').pop()}" class="archive-dl-btn" title="Download" onclick="event.stopPropagation()">${iconDownload}</a>`
+            ? `<a href="${downloadUrl}" download="${entry.name.split('/').pop()}" class="archive-dl-btn" title="Download" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg></a>`
             : '';
+            
+        const parts = entry.name.split('/');
+        const fileName = parts.pop();
+        const dirPath = parts.length > 0 ? parts.join('/') + '/' : '';
+        const displayHtml = dirPath ? `<span style="opacity:0.5; font-weight:400;">${escapeHtml(dirPath)}</span><span style="font-weight:600; color:var(--text-color);">${escapeHtml(fileName)}</span>` : `<span style="font-weight:600; color:var(--text-color);">${escapeHtml(fileName)}</span>`;
 
         html += `
-            <tr class="${entry.is_dir ? 'archive-dir' : ''} ${clickClass}" ${clickAttr}>
-                <td><div class="archive-name-wrap">${icon} <span>${escapeHtml(entry.name)}</span></div></td>
+            <tr class="${entry.is_dir ? 'archive-dir' : ''} ${clickClass} archive-item-row" data-search-name="${escapeHtml(entry.name).toLowerCase()}" ${clickAttr}>
+                <td><div class="archive-name-wrap">${icon} <span>${displayHtml}</span></div></td>
                 <td>${entry.size_fmt}</td>
                 <td>${entry.compressed_fmt}</td>
                 <td style="text-align:right;">${downloadAction}</td>
@@ -213,6 +215,37 @@ export function renderArchiveTable(data, archivePath) {
     mediaContainer._archiveData = data;
     mediaContainer._archivePath = archivePath;
 }
+
+function getFileIcon(isDir, ext) {
+    if (isDir) return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon" style="color: var(--c-primary);"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>`;
+    
+    if (['js', 'py', 'html', 'css', 'json', 'ts', 'jsx', 'tsx', 'cpp', 'java', 'go'].includes(ext)) 
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon" style="color: #fbbf24;"><polyline points="16 18 22 12 16 6"></polyline><polyline points="8 6 2 12 8 18"></polyline></svg>`;
+    
+    if (IMAGE_EXTS.includes(ext))
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon" style="color: #00F5FF;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>`;
+    
+    if (VIDEO_EXTS.includes(ext))
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon" style="color: #8b5cf6;"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>`;
+
+    if (['mp3', 'wav', 'ogg', 'flac'].includes(ext))
+        return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon" style="color: #f43f5e;"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>`;
+
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="file-icon"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>`;
+}
+
+window.filterArchiveContents = function(query) {
+    const term = query.toLowerCase();
+    const rows = document.querySelectorAll('.archive-item-row');
+    rows.forEach(row => {
+        const name = row.getAttribute('data-search-name');
+        if (name.includes(term)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+};
 
 export function renderArchiveGallery(data, archivePath) {
     const escapedPath = archivePath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
@@ -232,7 +265,7 @@ export function renderArchiveGallery(data, archivePath) {
                 </div>
             </div>
             <div class="archive-gallery-wrap">
-                <div class="archive-gallery-feed">`;
+                <div class="archive-masonry-grid">`;
 
     for (const entry of mediaEntries) {
         const ext = entry.name.split('.').pop().toLowerCase();
@@ -243,12 +276,12 @@ export function renderArchiveGallery(data, archivePath) {
 
         html += `
             ${isVideo
-                ? `<div class="archive-feed-item archive-feed-video-item" onclick="window.playFeedVideo(this, event)">
+                ? `<div class="archive-masonry-item" onclick="window.playFeedVideo(this, event)">
                 <video src="${viewUrl}" muted preload="metadata" class="archive-feed-media"></video>
                 <div class="archive-gallery-play">▶</div>
                 <div class="archive-feed-label">${escapeHtml(shortName)}</div>
                </div>`
-                : `<div class="archive-feed-item" onclick="window.previewArchiveEntry('${escapedPath}', '${entry.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')">
+                : `<div class="archive-masonry-item" onclick="window.previewArchiveEntry('${escapedPath}', '${entry.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')">
                 <img src="${viewUrl}" alt="${escapeHtml(shortName)}" class="archive-feed-media" loading="lazy">
                 <div class="archive-feed-label">${escapeHtml(shortName)}</div>
                </div>`}`;

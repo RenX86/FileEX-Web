@@ -1,10 +1,11 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS } from './config.js?v=6';
-import { escapeHtml } from './utils.js?v=6';
-import { mediaContainer, modal } from './ui.js?v=6';
-import { addRecentFile } from './store.js?v=6';
-import { getCurrentItems } from './actions.js?v=6';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS } from './config.js?v=8';
+import { escapeHtml } from './utils.js?v=8';
+import { mediaContainer, modal } from './ui.js?v=8';
+import { addRecentFile } from './store.js?v=8';
+import { getCurrentItems } from './actions.js?v=8';
 
 let currentMediaItem = null;
+let currentArchiveEntryName = null;
 
 // Zoom & Pan Variables
 let zoomLevel = 1;
@@ -18,25 +19,33 @@ let touchStartY = 0;
 
 // Keyboard navigation
 document.addEventListener('keydown', (e) => {
-    if (modal.style.display === 'flex' && currentMediaItem) {
-        if (e.key === 'ArrowLeft') navigateMedia(-1);
-        if (e.key === 'ArrowRight') navigateMedia(1);
-        if (e.key === '=' || e.key === '+') viewerZoom(0.2);
-        if (e.key === '-') viewerZoom(-0.2);
-        if (e.key === '0') viewerReset();
+    if (modal.style.display === 'flex') {
+        if (currentMediaItem) {
+            if (e.key === 'ArrowLeft') navigateMedia(-1);
+            if (e.key === 'ArrowRight') navigateMedia(1);
+        } else if (currentArchiveEntryName) {
+            if (e.key === 'ArrowLeft') navigateArchiveMedia(-1);
+            if (e.key === 'ArrowRight') navigateArchiveMedia(1);
+        }
+        
+        if (currentMediaItem || currentArchiveEntryName || document.getElementById('viewer-image-wrapper')) {
+            if (e.key === '=' || e.key === '+') viewerZoom(0.2);
+            if (e.key === '-') viewerZoom(-0.2);
+            if (e.key === '0') viewerReset();
+        }
     }
 });
 
 // Touch Navigation
 document.addEventListener('touchstart', (e) => {
-    if (modal.style.display === 'flex' && currentMediaItem) {
+    if (modal.style.display === 'flex' && (currentMediaItem || currentArchiveEntryName)) {
         touchStartX = e.touches[0].screenX;
         touchStartY = e.touches[0].screenY;
     }
 }, { passive: true });
 
 document.addEventListener('touchend', (e) => {
-    if (modal.style.display === 'flex' && currentMediaItem && e.changedTouches.length > 0) {
+    if (modal.style.display === 'flex' && (currentMediaItem || currentArchiveEntryName) && e.changedTouches.length > 0) {
         const touchEndX = e.changedTouches[0].screenX;
         const touchEndY = e.changedTouches[0].screenY;
         handleSwipeGesture(touchStartX, touchStartY, touchEndX, touchEndY);
@@ -55,8 +64,9 @@ function handleSwipeGesture(startX, startY, endX, endY) {
     // Horizontal Swipe
     if (Math.abs(diffX) > Math.abs(diffY)) {
         if (Math.abs(diffX) > thresholdX) {
-            if (diffX > 0) navigateMedia(-1);
-            else navigateMedia(1);
+            const step = diffX > 0 ? -1 : 1;
+            if (currentArchiveEntryName) navigateArchiveMedia(step);
+            else if (currentMediaItem) navigateMedia(step);
         }
     } else {
         // Vertical Swipe (Swipe down to dismiss)
@@ -157,12 +167,14 @@ export function closeModal() {
         mediaContainer.innerHTML = '';
         document.body.classList.remove('modal-open');
         currentMediaItem = null;
+        currentArchiveEntryName = null;
         viewerReset();
     }, 200);
 }
 
 export function openMedia(item) {
     currentMediaItem = item;
+    currentArchiveEntryName = null;
     const ext = item.name.split('.').pop().toLowerCase();
     const viewUrl = `${API_BASE}/view?path=${encodeURIComponent(item.path)}`;
     const downloadUrl = `${API_BASE}/download?path=${encodeURIComponent(item.path)}`;
@@ -270,8 +282,34 @@ export function navigateMedia(step) {
     openMedia(navigableItems[nextIndex]);
 }
 
+export function navigateArchiveMedia(step) {
+    if (!currentArchiveEntryName) return;
+
+    const data = mediaContainer._archiveData;
+    const archivePath = mediaContainer._archivePath;
+    if (!data || !data.entries) return;
+
+    const navigableItems = data.entries.filter(e => {
+        if (e.is_dir) return false;
+        const ext = e.name.split('.').pop().toLowerCase();
+        return IMAGE_EXTS.includes(ext) || VIDEO_EXTS.includes(ext);
+    });
+
+    if (navigableItems.length <= 1) return;
+
+    const currentIndex = navigableItems.findIndex(e => e.name === currentArchiveEntryName);
+    if (currentIndex === -1) return;
+
+    let nextIndex = currentIndex + step;
+    if (nextIndex < 0) nextIndex = navigableItems.length - 1;
+    if (nextIndex >= navigableItems.length) nextIndex = 0;
+
+    previewArchiveEntry(archivePath, navigableItems[nextIndex].name);
+}
+
 export function openRecentFile(filePath, fileName) {
     currentMediaItem = null;
+    currentArchiveEntryName = null;
     const ext = fileName.split('.').pop().toLowerCase();
     const viewUrl = `${API_BASE}/view?path=${encodeURIComponent(filePath)}`;
     const downloadUrl = `${API_BASE}/download?path=${encodeURIComponent(filePath)}`;
@@ -332,9 +370,19 @@ export function openRecentFile(filePath, fileName) {
 
 export function previewArchiveEntry(archivePath, entryName) {
     currentMediaItem = null;
+    currentArchiveEntryName = entryName;
     const ext = entryName.split('.').pop().toLowerCase();
     const pwdStr = mediaContainer._archivePassword ? `&password=${encodeURIComponent(mediaContainer._archivePassword)}` : '';
     const viewUrl = `${API_BASE}/archive/view?path=${encodeURIComponent(archivePath)}&entry=${encodeURIComponent(entryName)}${pwdStr}`;
+
+    const navHtml = `
+        <div class="media-nav prev" onclick="window.navigateArchiveMedia(-1)">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </div>
+        <div class="media-nav next" onclick="window.navigateArchiveMedia(1)">
+            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>
+    `;
 
     const toolbarHtml = `
         <div class="viewer-toolbar">
@@ -360,6 +408,7 @@ export function previewArchiveEntry(archivePath, entryName) {
     if (IMAGE_EXTS.includes(ext)) {
         mediaContainer.innerHTML = `
             ${toolbarHtml}
+            ${navHtml}
             <div class="viewer-image-wrapper" id="viewer-image-wrapper">
                 <img src="${viewUrl}" alt="${escapeHtml(entryName)}" id="viewer-image" data-rotation="0">
             </div>
@@ -369,6 +418,7 @@ export function previewArchiveEntry(archivePath, entryName) {
     } else if (VIDEO_EXTS.includes(ext)) {
         mediaContainer.innerHTML = `
             ${toolbarHtml}
+            ${navHtml}
             <div class="viewer-video-wrapper">
                 <video controls autoplay playsinline>
                     <source src="${viewUrl}" type="video/${ext === 'mov' ? 'mp4' : ext}">

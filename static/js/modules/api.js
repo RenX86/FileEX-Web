@@ -1,4 +1,4 @@
-import { API_BASE } from './config.js?v=6';
+import { API_BASE } from './config.js?v=7';
 
 export async function fetchFiles(path, skip = 0, limit = 100) {
     let url = path ? `${API_BASE}/list?path=${encodeURIComponent(path)}` : `${API_BASE}/list`;
