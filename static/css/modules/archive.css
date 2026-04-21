@@ -1,8 +1,9 @@
 /* Archive Viewer */
 .archive-viewer {
-    background: var(--card-bg);
-    border: var(--border-width) solid var(--border-color);
-    box-shadow: var(--shadow);
+    background: var(--surface-low);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sharp);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
     width: 70vw;
     max-width: 900px;
     max-height: 80vh;
@@ -11,10 +12,15 @@
     font-family: var(--font-main);
 }
 
+[data-theme="dark"] .archive-viewer {
+    border: none;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+}
+
 .archive-header {
     padding: 15px 20px;
-    background: var(--c-yellow);
-    border-bottom: var(--border-width) solid var(--border-color);
+    background: var(--surface-container);
+    border-bottom: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -22,27 +28,31 @@
 }
 
 [data-theme="dark"] .archive-header {
-    background: #1a1a1a;
+    border-bottom: var(--border-ghost);
 }
 
 .archive-header h2 {
     margin: 0;
     font-size: 1.1rem;
-    font-weight: 700;
+    font-weight: 500;
+    font-family: var(--font-headline);
+    color: var(--text-color);
 }
 
 .archive-stats {
-    background: #000;
-    color: #fff;
-    padding: 3px 10px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    border-radius: 3px;
+    background: var(--surface-highest);
+    color: var(--bg-color);
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    font-family: var(--font-mono);
+    border-radius: var(--radius-soft);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
 }
 
 [data-theme="dark"] .archive-stats {
-    background: #555;
-    color: #fff;
+    color: var(--text-color);
 }
 
 .archive-table-wrap {
@@ -59,48 +69,52 @@
 .archive-table thead {
     position: sticky;
     top: 0;
-    background: var(--bg-color);
+    background: var(--surface);
     z-index: 1;
 }
 
 .archive-table th {
     text-align: left;
-    padding: 8px 15px;
-    font-weight: 700;
-    border-bottom: 2px solid var(--border-color);
+    padding: 12px 15px;
+    font-weight: 500;
+    font-family: var(--font-mono);
     text-transform: uppercase;
     font-size: 0.75rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-color);
+    letter-spacing: 0.05em;
 }
 
 [data-theme="dark"] .archive-table th {
-    background: #1a1a1a;
-    color: #aaa;
+    border-bottom: var(--border-ghost);
 }
 
 .archive-table td {
-    padding: 6px 15px;
-    border-bottom: 1px solid #eee;
+    padding: 10px 15px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 500px;
+    color: var(--text-color);
+    border-bottom: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .archive-table td {
-    color: #e0e0e0;
+    border-bottom: var(--border-ghost);
 }
 
-.archive-table tr:hover {
-    background: var(--c-cyan);
-    transition: background 0.1s;
+.archive-table tr:hover td {
+    background: var(--surface-container);
+    color: var(--c-primary);
 }
 
-[data-theme="dark"] .archive-table tr:hover {
-    background: #00838F;
+[data-theme="dark"] .archive-table tr:hover td {
+    background: var(--surface-high);
 }
 
 .archive-dir td {
-    font-weight: 600;
+    font-weight: 500;
+    color: var(--text-color);
 }
 
 .archive-table td:first-child {
@@ -111,14 +125,19 @@
 .archive-name-wrap {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 12px;
 }
 
 .file-icon {
     width: 18px;
     height: 18px;
-    stroke-width: 2;
+    stroke-width: 1.5;
     flex-shrink: 0;
+    color: var(--text-muted);
+}
+
+.archive-table tr:hover .file-icon {
+    color: var(--c-primary);
 }
 
 .archive-dl-btn {
@@ -127,11 +146,11 @@
     justify-content: center;
     width: 28px;
     height: 28px;
-    border: 2px solid #000;
-    background: #fff;
-    border-radius: 4px;
-    color: #000;
-    transition: all 0.1s;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: var(--radius-soft);
+    transition: all 0.2s;
     cursor: pointer;
 }
 
@@ -141,26 +160,8 @@
 }
 
 .archive-dl-btn:hover {
-    background: var(--c-cyan);
-    transform: translateY(-2px);
-    box-shadow: 2px 2px 0 #000;
-}
-
-.archive-dl-btn:active {
-    transform: translateY(0);
-    box-shadow: none;
-}
-
-[data-theme="dark"] .archive-dl-btn {
-    background: #333;
-    border-color: #555;
-    color: #fff;
-    box-shadow: 2px 2px 0 #111;
-}
-
-[data-theme="dark"] .archive-dl-btn:hover {
-    background: var(--c-cyan);
-    color: #000;
+    background: var(--surface-highest);
+    color: var(--c-primary);
 }
 
 /* Previewable archive entries */
@@ -169,56 +170,58 @@
 }
 
 .archive-previewable td:first-child {
-    color: #0066cc;
+    color: var(--c-primary-dim);
 }
 
-.archive-previewable:hover {
-    background: var(--c-lime) !important;
+.archive-previewable:hover td {
+    background: var(--surface-highest) !important;
 }
 
 /* Back-to-archive bar */
 .archive-back-bar {
-    background: var(--c-yellow);
-    padding: 10px 15px;
+    background: var(--surface-container);
+    padding: 12px 20px;
     display: flex;
     align-items: center;
     gap: 15px;
-    border-bottom: var(--border-width) solid var(--border-color);
-    font-family: var(--font-main);
+    border-bottom: 1px solid var(--border-color);
 }
 
 [data-theme="dark"] .archive-back-bar {
-    background: #1a1a1a;
+    border-bottom: var(--border-ghost);
 }
 
 .archive-back-btn {
-    background: #000;
-    color: #fff;
-    border: 2px solid #000;
-    padding: 6px 14px;
-    font-weight: 700;
-    font-size: 0.8rem;
+    background: var(--surface-highest);
+    color: var(--bg-color);
+    border: none;
+    padding: 6px 12px;
+    font-weight: 500;
+    font-size: 0.75rem;
+    font-family: var(--font-mono);
     cursor: pointer;
-    font-family: var(--font-main);
-    transition: background 0.15s;
+    border-radius: var(--radius-soft);
+    text-transform: uppercase;
+    transition: all 0.2s;
 }
 
 [data-theme="dark"] .archive-back-btn {
-    background: #555;
-    color: #fff;
-    border-color: #666;
+    color: var(--text-color);
 }
 
 .archive-back-btn:hover {
-    background: var(--c-orange);
+    background: var(--c-primary);
+    color: var(--c-on-primary);
 }
 
 .archive-preview-name {
     font-size: 0.85rem;
-    font-weight: 600;
+    font-weight: 500;
+    font-family: var(--font-headline);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    color: var(--text-color);
 }
 
 /* Archive header actions */
@@ -229,29 +232,32 @@
 }
 
 .archive-mode-btn {
-    background: #fff;
-    color: #000;
-    border: 2px solid #000;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
     padding: 4px 10px;
-    font-weight: 700;
+    font-weight: 500;
     font-size: 0.7rem;
+    font-family: var(--font-mono);
     cursor: pointer;
-    font-family: var(--font-main);
-    transition: all 0.15s;
+    border-radius: var(--radius-soft);
+    transition: all 0.2s;
+    text-transform: uppercase;
 }
 
 [data-theme="dark"] .archive-mode-btn {
-    background: #333;
-    color: #e0e0e0;
-    border-color: #555;
+    border-color: var(--border-ghost);
 }
 
 .archive-mode-btn:hover {
-    background: var(--c-cyan);
+    color: var(--text-color);
+    background: var(--surface-highest);
 }
 
 .archive-mode-btn.active {
-    background: var(--c-lime);
+    background: var(--surface-highest);
+    color: var(--c-primary);
+    border-color: var(--surface-highest);
     cursor: default;
 }
 
@@ -267,7 +273,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     flex: 1;
-    background: #111;
+    background: var(--surface);
 }
 
 .archive-gallery-feed {
@@ -281,12 +287,16 @@
     position: relative;
     width: 100%;
     cursor: pointer;
-    border-bottom: 3px solid #333;
-    transition: opacity 0.15s;
+    border-bottom: 1px solid var(--border-color);
+    transition: opacity 0.2s;
+}
+
+[data-theme="dark"] .archive-feed-item {
+    border-bottom: var(--border-ghost);
 }
 
 .archive-feed-item:hover {
-    opacity: 0.85;
+    opacity: 0.9;
 }
 
 .archive-feed-media {
@@ -294,67 +304,58 @@
     max-height: 400px;
     object-fit: contain;
     display: block;
-    background: #000;
-}
-
-[data-theme="dark"] .archive-feed-media {
-    background: #111;
+    background: var(--surface-low);
 }
 
 .archive-gallery-play {
     position: absolute;
-    top: 45%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
     color: #fff;
-    width: 55px;
-    height: 55px;
+    width: 60px;
+    height: 60px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.4rem;
+    font-size: 1.5rem;
     pointer-events: none;
+    border: 1px solid rgba(255,255,255,0.2);
 }
 
 .archive-feed-label {
-    padding: 8px 15px;
+    padding: 10px 15px;
     font-size: 0.8rem;
-    font-weight: 600;
-    background: #1a1a1a;
-    color: #ccc;
+    font-weight: 500;
+    background: var(--surface-container);
+    color: var(--text-color);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-family: var(--font-main);
-}
-
-[data-theme="dark"] .archive-feed-label {
-    background: rgba(0, 0, 0, 0.85);
+    font-family: var(--font-headline);
 }
 
 /* Mobile Archive */
 @media (max-width: 600px) {
-
-    /* Archive viewer — high width */
     .archive-viewer {
         width: 100vw;
         max-width: 100vw;
         max-height: 90vh;
-        border-left: none;
-        border-right: none;
+        border-radius: 0;
         box-shadow: none;
     }
 
     .archive-header {
-        padding: 10px 12px;
+        padding: 12px 16px;
         flex-wrap: wrap;
-        gap: 8px;
+        gap: 10px;
     }
 
     .archive-header h2 {
-        font-size: 0.9rem;
+        font-size: 1rem;
         flex: 1 1 100%;
     }
 
@@ -364,17 +365,16 @@
     }
 
     .archive-table td {
-        padding: 6px 8px;
+        padding: 8px 10px;
         max-width: 200px;
         font-size: 0.8rem;
     }
 
     .archive-table th {
-        padding: 6px 8px;
-        font-size: 0.65rem;
+        padding: 8px 10px;
+        font-size: 0.7rem;
     }
 
-    /* Gallery mode — full width */
     .archive-gallery-mode {
         width: 100vw;
         max-width: 100vw;
@@ -385,7 +385,7 @@
     }
 
     .archive-feed-label {
-        padding: 6px 10px;
-        font-size: 0.7rem;
+        padding: 8px 12px;
+        font-size: 0.75rem;
     }
 }

@@ -6,9 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}FileEX{% endblock %}</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="/static/css/style.css?v=28">
+    <link rel="stylesheet" href="/static/css/style.css?v=31">
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Space+Mono:wght@400;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap"
         rel="stylesheet">
     <script>
         // Apply theme immediately to prevent flash
@@ -20,16 +20,55 @@
 </head>
 
 <body>
-    <header>
-        <h1>FileEX</h1>
-        <div style="display:flex; gap:10px; align-items:center;">
-            <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" id="theme-btn">🌙</button>
-            {% if read_only %}
-            <span class="header-badge header-badge--mode">READ ONLY</span>
-            {% endif %}
-            <a href="/logout" class="header-badge header-badge--logout">LOGOUT</a>
+    <div class="app-layout">
+        <!-- Sidebar -->
+        <aside class="app-sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h1>FileEX <span class="logo-accent">SECURE</span></h1>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="javascript:void(0)" class="nav-item active" onclick="loadPath(''); document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active')); this.classList.add('active'); if(window.innerWidth<=900) toggleSidebar();">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                    Dashboard
+                </a>
+                <a href="javascript:void(0)" class="nav-item" onclick="window.loadTrash(); document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('active')); this.classList.add('active'); if(window.innerWidth<=900) toggleSidebar();">
+                    <svg viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                    Trash
+                </a>
+            </nav>
+            <div style="padding: 1.5rem 1.5rem;">
+                <div class="drive-progress-text">SYSTEM STATUS: ONLINE</div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="app-content">
+            <header class="app-header">
+                <div style="display:flex; align-items:center;">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+                        <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+                    </button>
+                    <!-- Future Search Bar placeholder -->
+                    <div style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted); letter-spacing:0.05em;">TERMINAL ACTIVE</div>
+                </div>
+                <div style="display:flex; gap:10px; align-items:center;">
+                    <button class="theme-toggle" onclick="toggleTheme()" title="Toggle dark mode" id="theme-btn">🌙</button>
+                    {% if read_only %}
+                    <span class="header-badge header-badge--mode">READ ONLY</span>
+                    {% endif %}
+                    <a href="/logout" class="header-badge header-badge--logout">LOGOUT</a>
+                </div>
+            </header>
+
+            <main class="container">
+                {% block content %}{% endblock %}
+            </main>
+
+            <footer class="site-footer">
+                FileEX &middot; Local Network File Explorer &middot; v2.1
+            </footer>
         </div>
-    </header>
+    </div>
 
     <!-- Media Modal -->
     <div id="media-modal" class="modal" style="display:none;">
@@ -39,15 +78,10 @@
         </div>
     </div>
 
-    <main class="container">
-        {% block content %}{% endblock %}
-    </main>
+    <!-- Sidebar Overlay for Mobile -->
+    <div id="sidebar-overlay" class="modal" style="display:none; background:rgba(0,0,0,0.5); z-index:99; backdrop-filter:none;" onclick="toggleSidebar()"></div>
 
-    <footer class="site-footer">
-        FileEX &middot; Local Network File Explorer &middot; v2.1
-    </footer>
-
-    <script type="module" src="/static/js/main.js?v=4"></script>
+    <script type="module" src="/static/js/main.js?v=6"></script>
     <script>
         function toggleTheme() {
             const html = document.documentElement;
@@ -65,6 +99,17 @@
         function updateThemeBtn() {
             const btn = document.getElementById('theme-btn');
             if (btn) btn.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '☀️' : '🌙';
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            sidebar.classList.toggle('open');
+            if (sidebar.classList.contains('open')) {
+                overlay.style.display = 'block';
+            } else {
+                overlay.style.display = 'none';
+            }
         }
 
         updateThemeBtn();

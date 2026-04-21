@@ -1,7 +1,5 @@
 body {
     background-color: var(--bg-color);
-    background-image: radial-gradient(#000 1px, transparent 0);
-    background-size: 20px 20px;
     color: var(--text-color);
     font-family: var(--font-main);
     margin: 0;
@@ -10,6 +8,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 main {
@@ -18,32 +18,43 @@ main {
 
 /* Custom scrollbar */
 ::-webkit-scrollbar {
-    width: 10px;
+    width: 6px;
+    height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-    background: var(--bg-color);
+    background: var(--surface);
 }
 
 ::-webkit-scrollbar-thumb {
-    background: var(--border-color);
-    border: 2px solid var(--bg-color);
+    background: var(--surface-high);
+    border-radius: var(--radius-sharp);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--surface-highest);
 }
 
 /* Theme toggle button */
 .theme-toggle {
-    background: none;
-    border: 2px solid var(--border-color);
-    font-size: 1.2rem;
+    background: var(--surface-container);
+    border: none;
+    color: var(--text-color);
+    font-size: 1rem;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
+    padding: 6px 10px;
+    border-radius: var(--radius-soft);
     line-height: 1;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
+}
+
+[data-theme="dark"] .theme-toggle {
+    background: var(--surface-highest);
 }
 
 .theme-toggle:hover {
-    transform: scale(1.1);
+    background: var(--surface-high);
+    box-shadow: var(--glow-active);
 }
 
 /* Loading */
@@ -51,25 +62,18 @@ main {
     grid-column: 1 / -1;
     text-align: center;
     padding: 3rem;
-    font-weight: 700;
-    font-size: 1.5rem;
-    border: var(--border-width) solid var(--border-color);
-    background-color: var(--c-cyan);
-    box-shadow: var(--shadow);
-    animation: pulse 1s infinite alternate;
+    font-family: var(--font-mono);
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--c-primary);
+    background-color: transparent;
+    border: none;
+    animation: blink 1.5s infinite;
 }
 
-@keyframes pulse {
-    from {
-        transform: scale(1);
-    }
-
-    to {
-        transform: scale(1.02);
-    }
-}
-
-[data-theme="dark"] .loading {
-    background-color: #00838F;
-    color: #fff;
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
 }

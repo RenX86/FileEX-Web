@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-secondary-fixed-variant": "#005e64",
+                        "on-secondary-container": "#e3fdff",
+                        "on-primary": "#4f6700",
+                        "tertiary-container": "#ff0355",
+                        "primary-fixed": "#c5fe00",
+                        "inverse-on-surface": "#555555",
+                        "tertiary-fixed-dim": "#ff7989",
+                        "on-error-container": "#ffd2c8",
+                        "secondary-fixed": "#00eefc",
+                        "primary-container": "#c5fe00",
+                        "tertiary-dim": "#e7004c",
+                        "primary-fixed-dim": "#b9ef00",
+                        "on-tertiary-fixed": "#39000c",
+                        "surface-container-high": "#1f1f1f",
+                        "on-tertiary": "#490012",
+                        "on-surface-variant": "#ababab",
+                        "on-primary-fixed": "#384b00",
+                        "surface-bright": "#2c2c2c",
+                        "outline": "#757575",
+                        "surface-container-highest": "#262626",
+                        "on-primary-fixed-variant": "#506900",
+                        "surface-tint": "#f3ffcd",
+                        "on-tertiary-container": "#000000",
+                        "surface-container": "#191919",
+                        "surface-container-low": "#131313",
+                        "on-secondary-fixed": "#003f43",
+                        "on-secondary": "#005359",
+                        "outline-variant": "#484848",
+                        "secondary-container": "#006970",
+                        "tertiary-fixed": "#ff909b",
+                        "error": "#ff7351",
+                        "error-container": "#b92902",
+                        "primary-dim": "#b9ef00",
+                        "on-background": "#ffffff",
+                        "on-primary-container": "#485e00",
+                        "on-error": "#450900",
+                        "tertiary": "#ff6e81",
+                        "on-tertiary-fixed-variant": "#780023",
+                        "surface-dim": "#0e0e0e",
+                        "inverse-surface": "#f9f9f9",
+                        "secondary-fixed-dim": "#00deec",
+                        "primary": "#f3ffcd",
+                        "surface": "#0e0e0e",
+                        "error-dim": "#d53d18",
+                        "surface-container-lowest": "#000000",
+                        "secondary": "#00eefc",
+                        "background": "#0e0e0e",
+                        "secondary-dim": "#00deec",
+                        "inverse-primary": "#4f6700",
+                        "on-surface": "#ffffff",
+                        "surface-variant": "#262626"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Space Grotesk"],
+                        "body": ["Space Grotesk"],
+                        "label": ["Space Grotesk"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Space Grotesk', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .brutal-shadow { box-shadow: 4px 4px 0px 0px #000000; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface selection:bg-primary selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 h-16 bg-[#0e0e0e] border-b-3 border-black">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-[#f3ffcd] hover:bg-[#1f1f1f] transition-colors p-2 active:translate-y-0.5">menu</button>
+<span class="text-2xl font-black tracking-tighter text-[#f3ffcd] font-['Space_Grotesk'] uppercase">VOLT_DRIVE</span>
+</div>
+<div class="flex items-center gap-2">
+<button class="material-symbols-outlined text-[#f3ffcd] hover:bg-[#1f1f1f] transition-colors p-2 active:translate-y-0.5">search</button>
+</div>
+</header>
+<main class="pt-24 pb-32 px-6 max-w-7xl mx-auto space-y-12">
+<!-- Hero Section: Storage Canvas -->
+<section class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<div class="lg:col-span-8">
+<h1 class="text-[3.5rem] font-black leading-none tracking-tighter mb-8 uppercase">SYSTEM_STATE</h1>
+<!-- Drive Status Card -->
+<div class="bg-surface-container-high border-[3px] border-black rounded-xl p-8 brutal-shadow relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 opacity-10">
+<span class="material-symbols-outlined text-[8rem] translate-x-8 -translate-y-4" style="font-variation-settings: 'FILL' 1;">database</span>
+</div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10 relative z-10">
+<div>
+<span class="text-primary font-bold tracking-widest text-xs uppercase mb-2 block">LOCAL STORAGE CLUSTER</span>
+<h2 class="text-5xl font-black tracking-tight">75% FULL</h2>
+</div>
+<div class="text-right">
+<span class="text-on-surface-variant font-medium text-sm block">384.2 GB / 512 GB USED</span>
+<span class="text-secondary font-bold text-lg uppercase tracking-tighter">OPTIMIZATION RECOMMENDED</span>
+</div>
+</div>
+<div class="h-10 bg-surface-container-lowest border-2 border-black rounded-lg overflow-hidden flex relative z-10">
+<div class="h-full bg-primary border-r-2 border-black" style="width: 75%;"></div>
+<div class="h-full bg-secondary opacity-30" style="width: 15%;"></div>
+</div>
+<div class="flex gap-6 mt-6 relative z-10">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-primary border border-black"></div>
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">System Files</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-secondary border border-black"></div>
+<span class="text-xs font-bold uppercase tracking-widest text-on-surface-variant">Media Archive</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Info/Action -->
+<div class="lg:col-span-4 space-y-6">
+<div class="bg-primary border-[3px] border-black rounded-xl p-6 brutal-shadow group cursor-pointer active:translate-y-1 active:shadow-none transition-all">
+<div class="flex justify-between items-start mb-12">
+<span class="material-symbols-outlined text-on-primary text-4xl" style="font-variation-settings: 'FILL' 1;">cloud_upload</span>
+<span class="material-symbols-outlined text-on-primary group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</div>
+<h3 class="text-on-primary font-black text-2xl uppercase leading-tight">Sync Global<br/>Directory</h3>
+<p class="text-on-primary/80 font-medium text-sm mt-2">Active connection via node_08</p>
+</div>
+<div class="bg-surface-container-low border-[3px] border-black rounded-xl p-6 brutal-shadow">
+<h4 class="text-xs font-bold tracking-[0.2em] text-on-surface-variant uppercase mb-4">Quick Stats</h4>
+<div class="space-y-4">
+<div class="flex justify-between items-center border-b border-white/5 pb-2">
+<span class="font-bold text-sm">TOTAL_FILES</span>
+<span class="font-black text-secondary">24,801</span>
+</div>
+<div class="flex justify-between items-center border-b border-white/5 pb-2">
+<span class="font-bold text-sm">LAST_SYNC</span>
+<span class="font-black text-secondary">2M AGO</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="font-bold text-sm">NODES</span>
+<span class="font-black text-secondary">04 ACTIVE</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Activity Strip -->
+<section>
+<div class="flex justify-between items-end mb-6">
+<h2 class="text-3xl font-black tracking-tighter uppercase">RECENT_TRAFFIC</h2>
+<button class="text-xs font-bold tracking-widest text-primary uppercase border-b-2 border-primary pb-1 hover:text-white hover:border-white transition-colors">View All</button>
+</div>
+<div class="flex gap-6 overflow-x-auto no-scrollbar pb-6 -mx-6 px-6">
+<!-- Activity Card 1 -->
+<div class="flex-none w-72 bg-surface-container-high border-[3px] border-black rounded-xl p-6 brutal-shadow hover:bg-surface-container-highest transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-8">
+<div class="w-12 h-12 bg-tertiary border-2 border-black rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-black font-bold">image</span>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase bg-black px-2 py-1 rounded">JPG</span>
+</div>
+<h3 class="font-bold text-lg leading-tight truncate mb-1">PROJECT_STARK_V02.jpg</h3>
+<p class="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Edited 14m ago</p>
+</div>
+<!-- Activity Card 2 -->
+<div class="flex-none w-72 bg-surface-container-high border-[3px] border-black rounded-xl p-6 brutal-shadow hover:bg-surface-container-highest transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-8">
+<div class="w-12 h-12 bg-secondary border-2 border-black rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-black font-bold">description</span>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase bg-black px-2 py-1 rounded">DOCX</span>
+</div>
+<h3 class="font-bold text-lg leading-tight truncate mb-1">CONTRACT_REVISION.docx</h3>
+<p class="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Uploaded 1h ago</p>
+</div>
+<!-- Activity Card 3 -->
+<div class="flex-none w-72 bg-surface-container-high border-[3px] border-black rounded-xl p-6 brutal-shadow hover:bg-surface-container-highest transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-8">
+<div class="w-12 h-12 bg-primary border-2 border-black rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-black font-bold">video_library</span>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase bg-black px-2 py-1 rounded">MP4</span>
+</div>
+<h3 class="font-bold text-lg leading-tight truncate mb-1">RENDER_FINAL_04.mp4</h3>
+<p class="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Shared 3h ago</p>
+</div>
+<!-- Activity Card 4 -->
+<div class="flex-none w-72 bg-surface-container-high border-[3px] border-black rounded-xl p-6 brutal-shadow hover:bg-surface-container-highest transition-colors cursor-pointer">
+<div class="flex justify-between items-start mb-8">
+<div class="w-12 h-12 bg-tertiary-fixed border-2 border-black rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-black font-bold">folder_zip</span>
+</div>
+<span class="text-[10px] font-bold text-on-surface-variant uppercase bg-black px-2 py-1 rounded">ZIP</span>
+</div>
+<h3 class="font-bold text-lg leading-tight truncate mb-1">ASSET_BUNDLE_MAY.zip</h3>
+<p class="text-xs text-on-surface-variant font-medium uppercase tracking-widest">Created 5h ago</p>
+</div>
+</div>
+</section>
+<!-- Bento Grid Sections -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<div class="lg:col-span-2 bg-surface-container-low border-[3px] border-black rounded-xl p-8 brutal-shadow">
+<h3 class="text-2xl font-black uppercase mb-6 tracking-tight">Active Nodes</h3>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+<div class="bg-black/40 border-2 border-black p-4 rounded-lg flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<div>
+<p class="text-sm font-bold">NODE_ALPHA_LONDON</p>
+<p class="text-[10px] text-on-surface-variant tracking-widest">LATENCY: 12ms</p>
+</div>
+</div>
+<div class="bg-black/40 border-2 border-black p-4 rounded-lg flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<div>
+<p class="text-sm font-bold">NODE_GAMMA_TOKYO</p>
+<p class="text-[10px] text-on-surface-variant tracking-widest">LATENCY: 142ms</p>
+</div>
+</div>
+<div class="bg-black/40 border-2 border-black p-4 rounded-lg flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-secondary animate-pulse"></div>
+<div>
+<p class="text-sm font-bold">BACKUP_SERVER_NY</p>
+<p class="text-[10px] text-on-surface-variant tracking-widest">LATENCY: 45ms</p>
+</div>
+</div>
+<div class="bg-black/40 border-2 border-black p-4 rounded-lg flex items-center gap-4 opacity-50">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+<div>
+<p class="text-sm font-bold">NODE_DELTA_PARIS</p>
+<p class="text-[10px] text-on-surface-variant tracking-widest">OFFLINE</p>
+</div>
+</div>
+</div>
+</div>
+<div class="bg-surface-container-highest border-[3px] border-black rounded-xl p-8 brutal-shadow flex flex-col justify-between">
+<div>
+<h3 class="text-2xl font-black uppercase mb-2 tracking-tight">Team Flux</h3>
+<p class="text-sm text-on-surface-variant font-medium">Currently viewing your drive</p>
+</div>
+<div class="flex -space-x-3 my-8">
+<img alt="team member" class="w-12 h-12 rounded-full border-2 border-black object-cover" data-alt="portrait of a young designer with glasses and creative aesthetic in professional studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuABIaM2cacFmwmzexDneS7TGV9XbRAgYqVWVNaGKKUqW9PLss_Zr9G8TGwbim_TKEBKgIf6EwCBgM_dKBAz459I3dyuRdKEbwnRR0BUusRFA-6jBADPbriY5wDuWp4BSWVp0G6OOW7nssw2exxijo-OuS4iS6Ps0adsJmvpk04LPKoaZJaJPM-fMpkXAR18YGUQN_ixvozVNMDqJwWTpeb9r99HOwZqoQR27nkRjCzti-v9MEZVxl-s6RDaMZ77aA48QVS2nv2HYAfQ"/>
+<img alt="team member" class="w-12 h-12 rounded-full border-2 border-black object-cover" data-alt="portrait of an engineer with short hair looking directly at camera with neutral background and soft light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDf7MzwyeUWRiOQ9d-WNLcO16vfwvwFcc1BA9hmPL2ok1ddOldKj5MeBhrxZmb0mCHR7Ola-edh2lByeC9aQ73bdmPSVCVLawePQP3gdu9BP_PDE90IT2zowSSebjggIFrlDMQ9V91dWpLU8Dn-8vCTvfM499kciRxLnMj1PKZN4HEueI4NovQMMX8GjZ0TMWKN_x7G6uOl_zXngE9wrNQeBxLfkRJdtoFJo6CZbOtZsWXpCEZWJpJ13f-yhq7BQd1edi8nydvVEspi"/>
+<img alt="team member" class="w-12 h-12 rounded-full border-2 border-black object-cover" data-alt="close up portrait of smiling woman with long dark hair and natural lighting outdoors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-jnbVIPbtnJ3tZAOAX1vtJRLpRqZZP8vLRF-lG9zR0A5tiH3HT1TPVBLf0UaAmtFAL1nqCqIJXxEOWrHI9R-PKLLloZr_lSCwj4i5nhbyXFzdqbZ6-9uCD98KdPk217iWWlWTiDYUiTxAPM_8l-99DymuTiGNwCcQNP-CFbsxCspEb65-uGyv1_SxdPWwxwix3L3Ew9kDqClYjtOaGrb1TjdKVJ6yDio6R9711roAjIWbl8kwV_EdWhIEeQLwXqGrA66zid6SQdkd"/>
+<div class="w-12 h-12 rounded-full border-2 border-black bg-surface-container-low flex items-center justify-center text-xs font-black">+12</div>
+</div>
+<button class="w-full bg-secondary text-black font-black py-3 border-2 border-black brutal-shadow active:translate-y-1 active:shadow-none transition-all uppercase tracking-widest text-sm">Manage Permissions</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 bg-[#0e0e0e] pb-safe px-2 border-t-3 border-black">
+<!-- DASHBOARD (Active) -->
+<a class="flex flex-col items-center justify-center bg-[#f3ffcd] text-black border-2 border-black rounded-md px-4 py-1 mx-1 active:scale-95 transition-transform duration-100" href="#">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-widest mt-0.5">DASHBOARD</span>
+</a>
+<!-- FILES -->
+<a class="flex flex-col items-center justify-center text-[#f3ffcd] px-4 py-1 mx-1 active:scale-95 transition-transform duration-100 hover:bg-[#131313]" href="#">
+<span class="material-symbols-outlined text-[24px]">folder_open</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-widest mt-0.5">FILES</span>
+</a>
+<!-- RECENT -->
+<a class="flex flex-col items-center justify-center text-[#f3ffcd] px-4 py-1 mx-1 active:scale-95 transition-transform duration-100 hover:bg-[#131313]" href="#">
+<span class="material-symbols-outlined text-[24px]">history</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-widest mt-0.5">RECENT</span>
+</a>
+<!-- SETTINGS -->
+<a class="flex flex-col items-center justify-center text-[#f3ffcd] px-4 py-1 mx-1 active:scale-95 transition-transform duration-100 hover:bg-[#131313]" href="#">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="font-['Space_Grotesk'] text-[10px] font-bold uppercase tracking-widest mt-0.5">SETTINGS</span>
+</a>
+</nav>
+<!-- Floating Action Button (FAB) - Contextual for Home -->
+<button class="fixed right-6 bottom-24 w-16 h-16 bg-tertiary border-[3px] border-black rounded-xl brutal-shadow flex items-center justify-center group active:translate-y-1 active:shadow-none transition-all z-40">
+<span class="material-symbols-outlined text-black text-3xl font-black group-hover:rotate-90 transition-transform">add</span>
+</button>
+</body></html>

@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileEX — Login</title>
-    <link rel="stylesheet" href="/static/css/style.css?v=27">
+    <title>FileEX — Terminal Login</title>
+    <link rel="stylesheet" href="/static/css/style.css?v=31">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <script>
         (function () {
@@ -13,7 +13,7 @@
             if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
         })();
     </script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         .login-wrapper {
             display: flex;
@@ -23,103 +23,110 @@
         }
 
         .login-card {
-            background: var(--card-bg);
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: var(--shadow);
+            background: var(--surface-low);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sharp);
             padding: 3rem;
             width: 100%;
             max-width: 400px;
             text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        [data-theme="dark"] .login-card {
+            border: none;
+            background: var(--surface-low);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
         }
 
         .login-card h2 {
-            font-size: 2rem;
+            font-size: 1.5rem;
+            font-family: var(--font-headline);
             text-transform: uppercase;
-            letter-spacing: -1px;
+            letter-spacing: 0.05em;
             margin: 0 0 0.5rem 0;
+            font-weight: 500;
         }
 
         .login-card p {
-            font-size: 0.9rem;
-            color: #555;
+            font-size: 0.85rem;
+            color: var(--text-muted);
             margin-bottom: 2rem;
+            font-family: var(--font-main);
         }
 
         .pin-input {
             width: 100%;
             padding: 1rem;
             font-size: 2rem;
-            font-family: var(--font-main);
-            font-weight: 700;
+            font-family: var(--font-mono);
+            font-weight: 500;
             text-align: center;
             letter-spacing: 0.5rem;
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: 2px 2px 0px 0px #000;
+            border: none;
+            border-bottom: 2px solid var(--surface-highest);
             outline: none;
-            background: var(--bg-color);
+            background: var(--surface);
             box-sizing: border-box;
+            color: var(--text-color);
+            transition: all 0.2s;
+        }
+
+        [data-theme="dark"] .pin-input {
+            background: var(--surface-container);
         }
 
         .pin-input:focus {
-            background: var(--c-yellow);
+            border-bottom-color: var(--c-primary);
+            box-shadow: 0 4px 15px rgba(0, 245, 255, 0.05);
         }
 
         .login-btn {
             width: 100%;
             padding: 1rem;
-            font-size: 1.2rem;
-            font-family: var(--font-main);
-            font-weight: 700;
+            font-size: 0.9rem;
+            font-family: var(--font-mono);
+            font-weight: 500;
             text-transform: uppercase;
-            background: var(--c-lime);
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: 4px 4px 0px 0px #000;
+            letter-spacing: 0.1em;
+            background: var(--c-primary);
+            color: var(--c-on-primary);
+            border: none;
+            border-radius: var(--radius-sharp);
             cursor: pointer;
-            margin-top: 1.5rem;
-            transition: all 0.1s;
+            margin-top: 2rem;
+            transition: all 0.2s;
         }
 
         .login-btn:hover {
-            transform: translate(-2px, -2px);
-            box-shadow: 6px 6px 0px 0px #000;
-        }
-
-        .login-btn:active {
-            transform: translate(2px, 2px);
-            box-shadow: 2px 2px 0px 0px #000;
+            background: var(--c-primary-dim);
+            box-shadow: var(--glow-active);
         }
 
         .error-msg {
-            background: var(--c-orange);
-            color: #fff;
-            font-weight: 700;
+            background: var(--c-error-container);
+            color: var(--c-error);
+            font-weight: 500;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
             padding: 0.75rem;
-            border: var(--border-width) solid var(--border-color);
-            box-shadow: 2px 2px 0px 0px #000;
+            border: 1px solid var(--c-error);
+            border-radius: var(--radius-soft);
             margin-bottom: 1.5rem;
             animation: shake 0.3s ease-in-out;
         }
 
         @keyframes shake {
-
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            25% {
-                transform: translateX(-8px);
-            }
-
-            75% {
-                transform: translateX(8px);
-            }
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
         }
 
         .lock-icon {
-            font-size: 4rem;
+            font-size: 2.5rem;
             margin-bottom: 1rem;
-            filter: drop-shadow(3px 3px 0px rgba(0, 0, 0, 0.3));
+            color: var(--c-primary);
+            opacity: 0.8;
         }
 
         @media (max-width: 600px) {
@@ -129,61 +136,13 @@
             }
 
             .login-card h2 {
-                font-size: 1.5rem;
+                font-size: 1.25rem;
             }
 
             .pin-input {
                 font-size: 1.5rem;
                 padding: 0.75rem;
             }
-
-            .login-btn {
-                font-size: 1rem;
-                padding: 0.75rem;
-            }
-
-            .lock-icon {
-                font-size: 3rem;
-            }
-        }
-
-        /* Dark mode overrides for login */
-        [data-theme="dark"] .login-card {
-            background: var(--card-bg);
-        }
-
-        [data-theme="dark"] .login-card p {
-            color: #aaa;
-        }
-
-        [data-theme="dark"] .pin-input {
-            color: #000;
-            background: var(--bg-color);
-            border-color: var(--border-color);
-            box-shadow: 2px 2px 0px 0px #222;
-        }
-
-        [data-theme="dark"] .pin-input:focus {
-            background: var(--c-yellow);
-            color: #000;
-        }
-
-        [data-theme="dark"] .login-btn {
-            color: #000;
-            border-color: var(--border-color);
-            box-shadow: 4px 4px 0px 0px #222;
-        }
-
-        [data-theme="dark"] .login-btn:hover {
-            box-shadow: 6px 6px 0px 0px #222;
-        }
-
-        [data-theme="dark"] .login-btn:active {
-            box-shadow: 2px 2px 0px 0px #222;
-        }
-
-        [data-theme="dark"] .error-msg {
-            box-shadow: 2px 2px 0px 0px #222;
         }
     </style>
 </head>
@@ -191,7 +150,7 @@
 <body>
     <header>
         <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
-            <h1>FileEX</h1>
+            <h1>FileEX <span class="logo-accent">SECURE</span></h1>
             <span class="header-badge header-badge--mode">LOCKED</span>
         </div>
     </header>
@@ -199,18 +158,19 @@
     <main class="container">
         <div class="login-wrapper">
             <div class="login-card">
-                <div class="lock-icon">🔒</div>
-                <h2>Enter PIN</h2>
-                <p>This file explorer is protected. Enter the access PIN to continue.</p>
+                <div class="lock-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                </div>
+                <h2>Terminal Authentication</h2>
+                <p>Secure connection required. Enter access PIN.</p>
 
                 {% if error %}
                 <div class="error-msg">{{ error }}</div>
                 {% endif %}
 
                 <form method="POST" action="/login">
-                    <input type="password" name="pin" class="pin-input" placeholder="• • • •" maxlength="20" autofocus
-                        required>
-                    <button type="submit" class="login-btn">UNLOCK →</button>
+                    <input type="password" name="pin" class="pin-input" placeholder="••••" maxlength="20" autofocus required>
+                    <button type="submit" class="login-btn">AUTHORIZE</button>
                 </form>
             </div>
         </div>

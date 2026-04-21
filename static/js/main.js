@@ -1,6 +1,6 @@
-import { loadPath, handleItemClick, confirmDelete, deleteItem, clearRecentFiles, loadTrash, restoreTrashItem, permanentDeleteTrashItem, renderTrashItems } from './modules/actions.js';
-import { closeModal, openRecentFile, previewArchiveEntry, playFeedVideo, navigateMedia } from './modules/viewer.js';
-import { renderArchiveTable, renderArchiveGallery } from './modules/ui.js';
+import { loadPath, handleItemClick, confirmDelete, deleteItem, clearRecentFiles, loadTrash, restoreTrashItem, permanentDeleteTrashItem, renderTrashItems } from './modules/actions.js?v=6';
+import { closeModal, openRecentFile, previewArchiveEntry, playFeedVideo, navigateMedia, viewerZoom, viewerReset, viewerRotate } from './modules/viewer.js?v=6';
+import { renderArchiveTable, renderArchiveGallery } from './modules/ui.js?v=6';
 
 // Expose to window for inline onclicks
 window.loadPath = loadPath;
@@ -15,6 +15,9 @@ window.renderArchiveGallery = renderArchiveGallery;
 window.previewArchiveEntry = previewArchiveEntry;
 window.playFeedVideo = playFeedVideo;
 window.navigateMedia = navigateMedia;
+window.viewerZoom = viewerZoom;
+window.viewerReset = viewerReset;
+window.viewerRotate = viewerRotate;
 window.loadTrash = loadTrash;
 window.restoreTrashItem = restoreTrashItem;
 window.permanentDeleteTrashItem = permanentDeleteTrashItem;
