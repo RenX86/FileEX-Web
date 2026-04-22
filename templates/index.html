@@ -3,8 +3,13 @@
 {% block content %}
 <div class="header-actions"
     style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
-    <div id="breadcrumb" class="breadcrumb" style="margin-bottom:0;">
-        <span class="crumb" onclick="loadPath('')">Home</span>
+    <div style="display:flex; align-items:center; gap:1rem;">
+        <button onclick="window.goUp()" style="background:transparent; color:var(--text-color); border:1px solid var(--border-color); padding:4px 10px; border-radius:var(--radius-soft); cursor:pointer; font-family:var(--font-mono); font-size:0.75rem; transition:all 0.2s;" onmouseover="this.style.background='var(--surface-highest)'" onmouseout="this.style.background='transparent'">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none" style="vertical-align:middle; margin-right:4px;"><polyline points="15 18 9 12 15 6"></polyline></svg>UP
+        </button>
+        <div id="breadcrumb" class="breadcrumb" style="margin-bottom:0;">
+            <span class="crumb" onclick="loadPath('')">Home</span>
+        </div>
     </div>
 </div>
 

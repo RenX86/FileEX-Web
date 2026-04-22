@@ -1,4 +1,4 @@
-import { IMAGE_EXTS, VIDEO_EXTS } from './config.js?v=7';
+import { IMAGE_EXTS, VIDEO_EXTS } from './config.js?v=9';
 
 export function getRecentFiles() {
     return JSON.parse(localStorage.getItem('recentFiles') || '[]');

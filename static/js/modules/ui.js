@@ -1,5 +1,5 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, ARCHIVE_EXTS } from './config.js?v=7';
-import { escapeHtml } from './utils.js?v=7';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, ARCHIVE_EXTS } from './config.js?v=9';
+import { escapeHtml } from './utils.js?v=9';
 
 export const listContainer = document.getElementById('file-list');
 export const breadcrumbContainer = document.getElementById('breadcrumb');

@@ -10,6 +10,8 @@ def validate_path(path: str) -> None:
         return
 
     path_norm = os.path.normpath(path).lower()
+    if path_norm.startswith('\\\\?\\') or path_norm.startswith('\\\\.\\'):
+        path_norm = path_norm[4:]
     
     for restricted in settings.RESTRICTED_PATHS:
         restricted_norm = os.path.normpath(restricted).lower()
@@ -18,5 +20,8 @@ def validate_path(path: str) -> None:
 
     # Resolve to real absolute path to catch symlinks and traversal
     resolved = os.path.normpath(os.path.realpath(path)).lower()
-    if resolved != path_norm:
+    if resolved.startswith('\\\\?\\') or resolved.startswith('\\\\.\\'):
+        resolved = resolved[4:]
+        
+    if resolved != path_norm and not (path_norm == "" or path_norm == "."):
         raise PermissionError(f"Access to {path} is restricted (path traversal detected).")

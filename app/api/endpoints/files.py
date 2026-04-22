@@ -265,74 +265,66 @@ async def view_archive_entry(path: str = Query(...), entry: str = Query(...), pa
 
         ext = path.split('.')[-1].lower()
         basename = os.path.basename(path).lower()
-        data = None
         content_type = mt.guess_type(entry)[0] or "application/octet-stream"
 
-        if ext == 'zip':
-            import zipfile
-            if not zipfile.is_zipfile(path):
-                raise HTTPException(status_code=400, detail="Not a valid zip file")
-            try:
+        def stream_archive():
+            if ext == 'zip':
+                import zipfile
                 pwd_bytes = password.encode('utf-8') if password else None
                 with zipfile.ZipFile(path, 'r') as zf:
                     if entry not in zf.namelist():
-                        raise HTTPException(status_code=404, detail="Entry not found in archive")
-                    data = zf.read(entry, pwd=pwd_bytes)
-            except RuntimeError as e:
-                if 'Bad password' in str(e) or 'password required' in str(e).lower():
-                    raise HTTPException(status_code=401, detail="password_required")
-                raise HTTPException(status_code=500, detail=f"Zip error: {e}")
+                        raise Exception("Entry not found in archive")
+                    with zf.open(entry, pwd=pwd_bytes) as f:
+                        while chunk := f.read(65536):
+                            yield chunk
 
-        elif basename.endswith('.tar.gz') or basename.endswith('.tar.bz2') or ext in ('tar', 'gz', 'bz2'):
-            import tarfile
-            try:
+            elif basename.endswith('.tar.gz') or basename.endswith('.tar.bz2') or ext in ('tar', 'gz', 'bz2'):
+                import tarfile
                 with tarfile.open(path, 'r:*') as tf:
                     member = tf.getmember(entry)
                     f = tf.extractfile(member)
                     if f is None:
-                        raise HTTPException(status_code=400, detail="Cannot extract this entry (directory or link)")
-                    data = f.read()
-            except KeyError:
-                raise HTTPException(status_code=404, detail="Entry not found in archive")
-            except tarfile.TarError:
-                raise HTTPException(status_code=400, detail="Not a valid tar archive")
+                        raise Exception("Cannot extract this entry")
+                    while chunk := f.read(65536):
+                        yield chunk
                 
-        elif ext == '7z':
-             import py7zr
-             try:
+            elif ext == '7z':
+                 import py7zr
                  with py7zr.SevenZipFile(path, mode='r', password=password) as z:
                      if z.needs_password() and not password:
-                         raise py7zr.exceptions.PasswordRequired()
+                         raise Exception("Password required")
                      all_data = z.read([entry])
                      if entry not in all_data:
-                          raise HTTPException(status_code=404, detail="Entry not found in archive")
-                     data = all_data[entry].read()
-             except (py7zr.exceptions.PasswordRequired, py7zr.exceptions.Bad7zFile):
-                 raise HTTPException(status_code=401, detail="password_required")
-             except Exception as e:
-                 if 'Corrupt' in str(e) or 'LZMAError' in str(type(e)):
-                     raise HTTPException(status_code=401, detail="password_required")
-                 raise e
+                          raise Exception("Entry not found")
+                     f = all_data[entry]
+                     f.seek(0)
+                     while chunk := f.read(65536):
+                         yield chunk
 
-        elif ext == 'rar':
-             import rarfile
-             rarfile.UNRAR_TOOL = "bsdtar"
-             try:
+            elif ext == 'rar':
+                 import rarfile
+                 rarfile.UNRAR_TOOL = "bsdtar"
                  with rarfile.RarFile(path, 'r') as rf:
                      if rf.needs_password():
                          if not password:
-                             raise rarfile.PasswordRequired()
+                             raise Exception("Password required")
                          rf.setpassword(password)
-                     data = rf.read(entry)
-             except rarfile.PasswordRequired:
-                 raise HTTPException(status_code=401, detail="password_required")
-             except rarfile.BadRarFile:
-                 raise HTTPException(status_code=401, detail="password_required")
-                 
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported archive format")
+                     with rf.open(entry) as f:
+                         while chunk := f.read(65536):
+                             yield chunk
 
-        return StreamingResponse(io.BytesIO(data), media_type=content_type)
+        # Do a quick check for zip/tar to see if file exists/password is right before streaming
+        if ext == 'zip':
+            import zipfile
+            if not zipfile.is_zipfile(path):
+                raise HTTPException(status_code=400, detail="Not a valid zip file")
+        elif ext == 'rar':
+            import rarfile
+            rarfile.UNRAR_TOOL = "bsdtar"
+            if not rarfile.is_rarfile(path):
+                raise HTTPException(status_code=400, detail="Not a valid rar file")
+
+        return StreamingResponse(stream_archive(), media_type=content_type)
 
     except PermissionError:
         raise HTTPException(status_code=403, detail="Permission denied")

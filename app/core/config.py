@@ -11,8 +11,8 @@ class Settings(BaseSettings):
     """
     APP_NAME: str = ("APP_NAME")
     DEBUG: bool = ("DEBUG").lower() == "true"
-    SECRET_KEY: str = ("SECRET_KEY")
-    ACCESS_PIN: str = ("ACCESS_PIN")
+    SECRET_KEY: str
+    ACCESS_PIN: str
     
     # Security: Paths that are strictly forbidden
     RESTRICTED_PATHS: list = [
@@ -34,4 +34,4 @@ class Settings(BaseSettings):
         env_file = ".env"
         extra = "ignore" # Allow extra fields in env file or ignored fields
 
-settings = Settings()
+settings = Settings()  # type: ignore

@@ -1,10 +1,10 @@
-import { fetchFiles, fetchArchive, deleteItemAPI } from './api.js?v=7';
-import { renderItems, updateBreadcrumbs, renderArchiveTable, renderRecentFiles, listContainer, mediaContainer, modal } from './ui.js?v=7';
-import { openMedia } from './viewer.js?v=7';
-import { ARCHIVE_EXTS } from './config.js?v=7';
-import { escapeHtml, showToast } from './utils.js?v=7';
-import { closeModal } from './viewer.js?v=7';
-import { getRecentFiles, clearRecentFiles as storeClearRecent } from './store.js?v=7';
+import { fetchFiles, fetchArchive, deleteItemAPI } from './api.js?v=9';
+import { renderItems, updateBreadcrumbs, renderArchiveTable, renderRecentFiles, listContainer, mediaContainer, modal } from './ui.js?v=9';
+import { openMedia } from './viewer.js?v=9';
+import { ARCHIVE_EXTS } from './config.js?v=9';
+import { escapeHtml, showToast } from './utils.js?v=9';
+import { closeModal } from './viewer.js?v=9';
+import { getRecentFiles, clearRecentFiles as storeClearRecent } from './store.js?v=9';
 
 // Expose functions to the global window object for inline HTML event handlers
 window.handleItemClick = handleItemClick;
@@ -33,6 +33,31 @@ let scrollObserver = null;
 
 export function getCurrentItems() {
     return currentItems;
+}
+
+export function goUp() {
+    if (!currentPath || currentPath === 'TRASH') return;
+    
+    const parts = currentPath.split(/[/\\]/).filter(p => p);
+    if (parts.length <= 1) {
+        loadPath('');
+        return;
+    }
+    
+    parts.pop();
+    
+    if (currentPath.startsWith('/')) {
+        loadPath('/' + parts.join('/'));
+        return;
+    }
+    
+    if (parts.length === 1 && parts[0].includes(':')) {
+        loadPath(parts[0] + '\\');
+        return;
+    }
+    
+    const sep = currentPath.includes('\\') ? '\\' : '/';
+    loadPath(parts.join(sep));
 }
 
 export async function loadPath(path) {
@@ -240,7 +265,7 @@ export async function loadTrash() {
     if (recentSection) recentSection.style.display = 'none';
 
     try {
-        const { fetchTrash } = await import('./api.js?v=7');
+        const { fetchTrash } = await import('./api.js?v=9');
         const items = await fetchTrash();
         currentItems = items;
         renderTrashItems(items);
@@ -295,7 +320,7 @@ export async function restoreTrashItem(event, trashId) {
     mediaContainer.innerHTML = '<div class="loading" style="background:var(--c-green); color:#000;">RESTORING...</div>';
 
     try {
-        const { restoreItemAPI } = await import('./api.js?v=7');
+        const { restoreItemAPI } = await import('./api.js?v=9');
         await restoreItemAPI(trashId);
         showToast('✅ Item restored to original location');
         loadTrash(); // Reload trash view
@@ -333,7 +358,7 @@ window._executePermanentDelete = async function (trashId) {
     mediaContainer.innerHTML = '<div class="loading" style="background:var(--c-pink); color:#000;">DESTROYING...</div>';
 
     try {
-        const { permanentDeleteItemAPI } = await import('./api.js?v=7');
+        const { permanentDeleteItemAPI } = await import('./api.js?v=9');
         await permanentDeleteItemAPI(trashId);
         closeModal();
         showToast('☢️ Item permanently destroyed');

@@ -1,6 +1,6 @@
-import { loadPath, handleItemClick, confirmDelete, deleteItem, clearRecentFiles, loadTrash, restoreTrashItem, permanentDeleteTrashItem, renderTrashItems } from './modules/actions.js?v=8';
-import { closeModal, openRecentFile, previewArchiveEntry, playFeedVideo, navigateMedia, navigateArchiveMedia, viewerZoom, viewerReset, viewerRotate } from './modules/viewer.js?v=8';
-import { renderArchiveTable, renderArchiveGallery } from './modules/ui.js?v=8';
+import { loadPath, handleItemClick, confirmDelete, deleteItem, clearRecentFiles, loadTrash, restoreTrashItem, permanentDeleteTrashItem, renderTrashItems, goUp } from './modules/actions.js?v=9';
+import { closeModal, openRecentFile, previewArchiveEntry, playFeedVideo, navigateMedia, navigateArchiveMedia, viewerZoom, viewerReset, viewerRotate } from './modules/viewer.js?v=9';
+import { renderArchiveTable, renderArchiveGallery } from './modules/ui.js?v=9';
 
 // Expose to window for inline onclicks
 window.loadPath = loadPath;
@@ -22,6 +22,7 @@ window.viewerRotate = viewerRotate;
 window.loadTrash = loadTrash;
 window.restoreTrashItem = restoreTrashItem;
 window.permanentDeleteTrashItem = permanentDeleteTrashItem;
+window.goUp = goUp;
 
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {
