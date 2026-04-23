@@ -313,16 +313,54 @@ async def view_archive_entry(path: str = Query(...), entry: str = Query(...), pa
                          while chunk := f.read(65536):
                              yield chunk
 
-        # Do a quick check for zip/tar to see if file exists/password is right before streaming
+        # Do a quick check for zip/tar/7z/rar to see if password is right before streaming
         if ext == 'zip':
             import zipfile
             if not zipfile.is_zipfile(path):
                 raise HTTPException(status_code=400, detail="Not a valid zip file")
+            try:
+                pwd_bytes = password.encode('utf-8') if password else None
+                with zipfile.ZipFile(path, 'r') as zf:
+                    info = zf.getinfo(entry)
+                    if info.flag_bits & 0x1 and not pwd_bytes:
+                        raise HTTPException(status_code=401, detail="password_required")
+                    # Try to open the entry to catch bad password
+                    with zf.open(entry, pwd=pwd_bytes) as test_f:
+                        test_f.read(1)
+            except KeyError:
+                raise HTTPException(status_code=404, detail="Entry not found in archive")
+            except RuntimeError as e:
+                if 'Bad password' in str(e) or 'password required' in str(e).lower():
+                    raise HTTPException(status_code=401, detail="password_required")
+                raise HTTPException(status_code=500, detail=f"Zip error: {e}")
+                
+        elif ext == '7z':
+             try:
+                 import py7zr
+                 with py7zr.SevenZipFile(path, mode='r', password=password) as z:
+                     if z.needs_password() and not password:
+                         raise py7zr.exceptions.PasswordRequired()
+             except (py7zr.exceptions.PasswordRequired, py7zr.exceptions.Bad7zFile):
+                 raise HTTPException(status_code=401, detail="password_required")
+             except Exception as e:
+                 if 'Corrupt' in str(e) or 'LZMAError' in str(type(e)):
+                     raise HTTPException(status_code=401, detail="password_required")
+                 raise e
+
         elif ext == 'rar':
             import rarfile
             rarfile.UNRAR_TOOL = "bsdtar"
             if not rarfile.is_rarfile(path):
                 raise HTTPException(status_code=400, detail="Not a valid rar file")
+            try:
+                with rarfile.RarFile(path, 'r') as rf:
+                    if rf.needs_password():
+                        if not password:
+                            raise rarfile.PasswordRequired()
+            except rarfile.PasswordRequired:
+                raise HTTPException(status_code=401, detail="password_required")
+            except rarfile.BadRarFile:
+                raise HTTPException(status_code=401, detail="password_required")
 
         return StreamingResponse(stream_archive(), media_type=content_type)
 

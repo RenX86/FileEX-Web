@@ -1,8 +1,8 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS } from './config.js?v=9';
-import { escapeHtml } from './utils.js?v=9';
-import { mediaContainer, modal } from './ui.js?v=9';
-import { addRecentFile } from './store.js?v=9';
-import { getCurrentItems } from './actions.js?v=9';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=15';
+import { escapeHtml } from './utils.js?v=15';
+import { mediaContainer, modal } from './ui.js?v=15';
+import { addRecentFile } from './store.js?v=15';
+import { getCurrentItems } from './actions.js?v=15';
 
 let currentMediaItem = null;
 let currentArchiveEntryName = null;
@@ -158,7 +158,25 @@ function applyTransform() {
     }
 }
 
+function initPlayer() {
+    if (window.plyrInstance) {
+        try { window.plyrInstance.destroy(); } catch (e) {}
+        window.plyrInstance = null;
+    }
+    const mediaEl = document.querySelector('#media-container video, #media-container audio');
+    if (mediaEl && window.Plyr) {
+        window.plyrInstance = new window.Plyr(mediaEl, { 
+            autoplay: true,
+            iconUrl: '/static/plyr.svg'
+        });
+    }
+}
+
 export function closeModal() {
+    if (window.plyrInstance) {
+        try { window.plyrInstance.destroy(); } catch (e) {}
+        window.plyrInstance = null;
+    }
     modal.classList.remove('danger-active');
     modal.style.opacity = '0';
     setTimeout(() => {
@@ -255,7 +273,32 @@ export function openMedia(item) {
         modal.style.display = 'flex';
         modal.style.opacity = '1';
         document.body.classList.add('modal-open');
+    } else if (AUDIO_EXTS.includes(ext)) {
+        mediaContainer.innerHTML = `
+            ${toolbarHtml}
+            ${navHtml}
+            <div class="viewer-video-wrapper" style="height:auto; padding:2rem;">
+                <audio controls autoplay style="width:100%; max-width:500px;">
+                    <source src="${viewUrl}" type="audio/${ext}">
+                </audio>
+            </div>`;
+        modal.style.display = 'flex';
+        modal.style.opacity = '1';
+        document.body.classList.add('modal-open');
+        addRecentFile(item);
+    } else if (TEXT_EXTS.includes(ext)) {
+        mediaContainer.innerHTML = `
+            ${toolbarHtml}
+            ${navHtml}
+            <div class="viewer-pdf-wrapper" style="background: var(--surface-low);">
+                <iframe src="${viewUrl}" style="background: #fff;"></iframe>
+            </div>`;
+        modal.style.display = 'flex';
+        modal.style.opacity = '1';
+        document.body.classList.add('modal-open');
+        addRecentFile(item);
     }
+    setTimeout(initPlayer, 50);
 }
 
 export function navigateMedia(step) {
@@ -366,6 +409,7 @@ export function openRecentFile(filePath, fileName) {
         modal.style.opacity = '1';
         document.body.classList.add('modal-open');
     }
+    setTimeout(initPlayer, 50);
 }
 
 export function previewArchiveEntry(archivePath, entryName) {
@@ -432,7 +476,26 @@ export function previewArchiveEntry(archivePath, entryName) {
                 <iframe src="${viewUrl}"></iframe>
             </div>
         `;
+    } else if (AUDIO_EXTS.includes(ext)) {
+        mediaContainer.innerHTML = `
+            ${toolbarHtml}
+            ${navHtml}
+            <div class="viewer-video-wrapper" style="height:auto; padding:2rem;">
+                <audio controls autoplay style="width:100%; max-width:500px;">
+                    <source src="${viewUrl}" type="audio/${ext}">
+                </audio>
+            </div>
+        `;
+    } else if (TEXT_EXTS.includes(ext)) {
+        mediaContainer.innerHTML = `
+            ${toolbarHtml}
+            ${navHtml}
+            <div class="viewer-pdf-wrapper" style="background: var(--surface-low);">
+                <iframe src="${viewUrl}" style="background: #fff;"></iframe>
+            </div>
+        `;
     }
+    setTimeout(initPlayer, 50);
 }
 
 export function playFeedVideo(container, event) {

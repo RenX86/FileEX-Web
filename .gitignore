@@ -159,3 +159,6 @@ target/
 Trash/
 Gemini.md
 .gemini_security/
+.superpowers/
+docs/
+.worktrees/

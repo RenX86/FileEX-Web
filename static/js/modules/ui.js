@@ -1,5 +1,5 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, ARCHIVE_EXTS } from './config.js?v=9';
-import { escapeHtml } from './utils.js?v=9';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, ARCHIVE_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=15';
+import { escapeHtml } from './utils.js?v=15';
 
 export const listContainer = document.getElementById('file-list');
 export const breadcrumbContainer = document.getElementById('breadcrumb');
@@ -145,7 +145,7 @@ export function updateBreadcrumbs(path) {
 }
 
 export function renderArchiveTable(data, archivePath) {
-    const previewableExts = [...IMAGE_EXTS, ...VIDEO_EXTS, 'pdf'];
+    const previewableExts = [...IMAGE_EXTS, ...VIDEO_EXTS, ...AUDIO_EXTS, ...TEXT_EXTS, 'pdf'];
     const escapedPath = archivePath.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     const mediaCount = data.entries.filter(e => {
         const ext = e.name.split('.').pop().toLowerCase();
@@ -276,7 +276,7 @@ export function renderArchiveGallery(data, archivePath) {
 
         html += `
             ${isVideo
-                ? `<div class="archive-masonry-item" onclick="window.playFeedVideo(this, event)">
+                ? `<div class="archive-masonry-item" onclick="window.previewArchiveEntry('${escapedPath}', '${entry.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}')">
                 <video src="${viewUrl}" muted preload="metadata" class="archive-feed-media"></video>
                 <div class="archive-gallery-play">▶</div>
                 <div class="archive-feed-label">${escapeHtml(shortName)}</div>
