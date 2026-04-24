@@ -1,10 +1,10 @@
-import { fetchFiles, fetchArchive, deleteItemAPI } from './api.js?v=15';
-import { renderItems, updateBreadcrumbs, renderArchiveTable, renderRecentFiles, listContainer, mediaContainer, modal } from './ui.js?v=15';
-import { openMedia } from './viewer.js?v=15';
-import { ARCHIVE_EXTS } from './config.js?v=15';
-import { escapeHtml, showToast } from './utils.js?v=15';
-import { closeModal } from './viewer.js?v=15';
-import { getRecentFiles, clearRecentFiles as storeClearRecent } from './store.js?v=15';
+import { fetchFiles, fetchArchive, deleteItemAPI } from './api.js?v=18';
+import { renderItems, updateBreadcrumbs, renderArchiveTable, renderRecentFiles, listContainer, mediaContainer, modal } from './ui.js?v=18';
+import { openMedia } from './viewer.js?v=18';
+import { ARCHIVE_EXTS } from './config.js?v=18';
+import { escapeHtml, showToast } from './utils.js?v=18';
+import { closeModal } from './viewer.js?v=18';
+import { getRecentFiles, clearRecentFiles as storeClearRecent } from './store.js?v=18';
 
 // Expose functions to the global window object for inline HTML event handlers
 window.handleItemClick = handleItemClick;
@@ -265,7 +265,7 @@ export async function loadTrash() {
     if (recentSection) recentSection.style.display = 'none';
 
     try {
-        const { fetchTrash } = await import('./api.js?v=15');
+        const { fetchTrash } = await import('./api.js?v=18');
         const items = await fetchTrash();
         currentItems = items;
         renderTrashItems(items);
@@ -320,7 +320,7 @@ export async function restoreTrashItem(event, trashId) {
     mediaContainer.innerHTML = '<div class="loading" style="background:var(--c-green); color:#000;">RESTORING...</div>';
 
     try {
-        const { restoreItemAPI } = await import('./api.js?v=15');
+        const { restoreItemAPI } = await import('./api.js?v=18');
         await restoreItemAPI(trashId);
         showToast('✅ Item restored to original location');
         loadTrash(); // Reload trash view
@@ -358,7 +358,7 @@ window._executePermanentDelete = async function (trashId) {
     mediaContainer.innerHTML = '<div class="loading" style="background:var(--c-pink); color:#000;">DESTROYING...</div>';
 
     try {
-        const { permanentDeleteItemAPI } = await import('./api.js?v=15');
+        const { permanentDeleteItemAPI } = await import('./api.js?v=18');
         await permanentDeleteItemAPI(trashId);
         closeModal();
         showToast('☢️ Item permanently destroyed');

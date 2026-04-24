@@ -1,8 +1,8 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=15';
-import { escapeHtml } from './utils.js?v=15';
-import { mediaContainer, modal } from './ui.js?v=15';
-import { addRecentFile } from './store.js?v=15';
-import { getCurrentItems } from './actions.js?v=15';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=18';
+import { escapeHtml } from './utils.js?v=18';
+import { mediaContainer, modal } from './ui.js?v=18';
+import { addRecentFile } from './store.js?v=18';
+import { getCurrentItems } from './actions.js?v=18';
 
 let currentMediaItem = null;
 let currentArchiveEntryName = null;
@@ -287,16 +287,33 @@ export function openMedia(item) {
         document.body.classList.add('modal-open');
         addRecentFile(item);
     } else if (TEXT_EXTS.includes(ext)) {
+        const isRenderable = ['html', 'htm', 'svg', 'md'].includes(ext);
+        const renderBtn = isRenderable ? `<button onclick="window.renderTextIframe('${viewUrl}')" class="archive-mode-btn" style="margin-left:auto; border-color:var(--c-cyan); color:var(--c-cyan);">RENDER PREVIEW</button>` : '';
         mediaContainer.innerHTML = `
             ${toolbarHtml}
             ${navHtml}
-            <div class="viewer-pdf-wrapper" style="background: var(--surface-low);">
-                <iframe src="${viewUrl}" style="background: #fff;"></iframe>
+            <div class="viewer-pdf-wrapper text-viewer-wrapper" style="background: var(--surface-low); padding:1.5rem; overflow:auto; display:flex; flex-direction:column; align-items:flex-start;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; width:100%; flex-shrink:0;">
+                    <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted);">RAW SOURCE</span>
+                    ${renderBtn}
+                </div>
+                <pre style="margin:0; white-space:pre-wrap; font-family:var(--font-mono); font-size:0.85rem; color:var(--text-color); width:100%;" id="text-preview-container">Loading source...</pre>
             </div>`;
         modal.style.display = 'flex';
         modal.style.opacity = '1';
         document.body.classList.add('modal-open');
         addRecentFile(item);
+
+        fetch(viewUrl)
+            .then(res => res.text())
+            .then(text => {
+                const el = document.getElementById('text-preview-container');
+                if(el) el.textContent = text;
+            })
+            .catch(err => {
+                const el = document.getElementById('text-preview-container');
+                if(el) el.textContent = 'Failed to load text: ' + err.message;
+            });
     }
     setTimeout(initPlayer, 50);
 }
@@ -487,13 +504,29 @@ export function previewArchiveEntry(archivePath, entryName) {
             </div>
         `;
     } else if (TEXT_EXTS.includes(ext)) {
+        const isRenderable = ['html', 'htm', 'svg', 'md'].includes(ext);
+        const renderBtn = isRenderable ? `<button onclick="window.renderTextIframe('${viewUrl}')" class="archive-mode-btn" style="margin-left:auto; border-color:var(--c-cyan); color:var(--c-cyan);">RENDER PREVIEW</button>` : '';
         mediaContainer.innerHTML = `
             ${toolbarHtml}
             ${navHtml}
-            <div class="viewer-pdf-wrapper" style="background: var(--surface-low);">
-                <iframe src="${viewUrl}" style="background: #fff;"></iframe>
-            </div>
-        `;
+            <div class="viewer-pdf-wrapper text-viewer-wrapper" style="background: var(--surface-low); padding:1.5rem; overflow:auto; display:flex; flex-direction:column; align-items:flex-start;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; width:100%; flex-shrink:0;">
+                    <span style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted);">RAW SOURCE</span>
+                    ${renderBtn}
+                </div>
+                <pre style="margin:0; white-space:pre-wrap; font-family:var(--font-mono); font-size:0.85rem; color:var(--text-color); width:100%;" id="text-preview-container">Loading source...</pre>
+            </div>`;
+
+        fetch(viewUrl)
+            .then(res => res.text())
+            .then(text => {
+                const el = document.getElementById('text-preview-container');
+                if(el) el.textContent = text;
+            })
+            .catch(err => {
+                const el = document.getElementById('text-preview-container');
+                if(el) el.textContent = 'Failed to load text: ' + err.message;
+            });
     }
     setTimeout(initPlayer, 50);
 }
@@ -507,3 +540,11 @@ export function playFeedVideo(container, event) {
     video.muted = false;
     video.play();
 }
+
+window.renderTextIframe = function(url) {
+    const wrapper = document.querySelector('.text-viewer-wrapper');
+    if (wrapper) {
+        wrapper.style.padding = '0';
+        wrapper.innerHTML = `<iframe src="${url}" sandbox="allow-same-origin" style="width:100%;height:100%;border:none;background:#fff;"></iframe>`;
+    }
+};
