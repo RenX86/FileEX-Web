@@ -1,6 +1,6 @@
-import { loadPath, handleItemClick, confirmDelete, deleteItem, clearRecentFiles, loadTrash, restoreTrashItem, permanentDeleteTrashItem, renderTrashItems, goUp } from './modules/actions.js?v=18';
-import { closeModal, openRecentFile, previewArchiveEntry, playFeedVideo, navigateMedia, navigateArchiveMedia, viewerZoom, viewerReset, viewerRotate } from './modules/viewer.js?v=18';
-import { renderArchiveTable, renderArchiveGallery } from './modules/ui.js?v=18';
+import { loadPath, handleItemClick, confirmDelete, deleteItem, clearRecentFiles, loadTrash, restoreTrashItem, permanentDeleteTrashItem, renderTrashItems, goUp, loadSidebarDrives } from './modules/actions.js?v=21';
+import { closeModal, openRecentFile, previewArchiveEntry, playFeedVideo, navigateMedia, navigateArchiveMedia, viewerZoom, viewerReset, viewerRotate } from './modules/viewer.js?v=21';
+import { renderArchiveTable, renderArchiveGallery } from './modules/ui.js?v=21';
 
 // Expose to window for inline onclicks
 window.loadPath = loadPath;
@@ -26,6 +26,7 @@ window.goUp = goUp;
 
 // Initial load
 document.addEventListener('DOMContentLoaded', () => {
+    loadSidebarDrives();
     loadPath('');
 });
 

@@ -1,8 +1,8 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=18';
-import { escapeHtml } from './utils.js?v=18';
-import { mediaContainer, modal } from './ui.js?v=18';
-import { addRecentFile } from './store.js?v=18';
-import { getCurrentItems } from './actions.js?v=18';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=21';
+import { escapeHtml } from './utils.js?v=21';
+import { mediaContainer, modal } from './ui.js?v=21';
+import { addRecentFile } from './store.js?v=21';
+import { getCurrentItems } from './actions.js?v=21';
 
 let currentMediaItem = null;
 let currentArchiveEntryName = null;
@@ -545,6 +545,12 @@ window.renderTextIframe = function(url) {
     const wrapper = document.querySelector('.text-viewer-wrapper');
     if (wrapper) {
         wrapper.style.padding = '0';
-        wrapper.innerHTML = `<iframe src="${url}" sandbox="allow-same-origin" style="width:100%;height:100%;border:none;background:#fff;"></iframe>`;
+        // Use a restrictive sandbox and an overlay to completely block interaction while allowing scrolling of the wrapper
+        wrapper.innerHTML = `
+            <div style="position:relative; width:100%; height:100%;">
+                <div style="position:absolute; top:0; left:0; width:100%; height:100%; z-index:10; cursor:not-allowed;"></div>
+                <iframe src="${url}" sandbox="" style="width:100%;height:100%;border:none;background:#fff; pointer-events:none;"></iframe>
+            </div>
+        `;
     }
 };

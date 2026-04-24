@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FileEX — Terminal Login</title>
-    <link rel="stylesheet" href="/static/css/style.css?v=39">
+    <link rel="stylesheet" href="/static/css/style.css?v=41">
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
     <script>
         (function () {
@@ -15,11 +15,35 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .login-topbar {
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface-low);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        [data-theme="dark"] .login-topbar {
+            border-bottom: var(--border-ghost);
+            background: var(--surface-lowest);
+        }
+
         .login-wrapper {
+            flex: 1;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 80vh;
+            padding: 2rem;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .login-card {
@@ -132,7 +156,6 @@
         @media (max-width: 600px) {
             .login-card {
                 padding: 2rem 1.5rem;
-                margin: 0 10px;
             }
 
             .login-card h2 {
@@ -148,33 +171,31 @@
 </head>
 
 <body>
-    <header>
-        <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
-            <h1>FileEX <span class="logo-accent">SECURE</span></h1>
-            <span class="header-badge header-badge--mode">LOCKED</span>
-        </div>
-    </header>
+    <div class="login-topbar">
+        <h1 style="margin:0; font-family:var(--font-headline); font-size:1.4rem; font-weight:500; color:var(--text-color); display:flex; align-items:center;">
+            FileEX <span class="logo-accent" style="font-family:var(--font-mono); background:var(--c-primary-container); color:var(--c-primary); padding:2px 6px; font-size:0.5em; margin-left:8px; letter-spacing:0.05em; border-radius:var(--radius-soft);">SECURE</span>
+        </h1>
+        <span class="header-badge header-badge--mode" style="padding:4px 10px; font-size:0.65rem; font-weight:500; font-family:var(--font-mono); background:var(--surface-highest); color:var(--text-color); border-radius:var(--radius-soft); letter-spacing:0.1em;">LOCKED</span>
+    </div>
 
-    <main class="container">
-        <div class="login-wrapper">
-            <div class="login-card">
-                <div class="lock-icon">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                </div>
-                <h2>Terminal Authentication</h2>
-                <p>Secure connection required. Enter access PIN.</p>
-
-                {% if error %}
-                <div class="error-msg">{{ error }}</div>
-                {% endif %}
-
-                <form method="POST" action="/login">
-                    <input type="password" name="pin" class="pin-input" placeholder="••••" maxlength="20" autofocus required>
-                    <button type="submit" class="login-btn">AUTHORIZE</button>
-                </form>
+    <div class="login-wrapper">
+        <div class="login-card">
+            <div class="lock-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             </div>
+            <h2>Terminal Authentication</h2>
+            <p>Secure connection required. Enter access PIN.</p>
+
+            {% if error %}
+            <div class="error-msg">{{ error }}</div>
+            {% endif %}
+
+            <form method="POST" action="/login">
+                <input type="password" name="pin" class="pin-input" placeholder="••••" maxlength="20" autofocus required>
+                <button type="submit" class="login-btn">AUTHORIZE</button>
+            </form>
         </div>
-    </main>
+    </div>
 </body>
 
 </html>
