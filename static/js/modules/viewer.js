@@ -177,6 +177,17 @@ export function closeModal() {
         try { window.plyrInstance.destroy(); } catch (e) {}
         window.plyrInstance = null;
     }
+
+    // If viewing an entry inside an archive, go back to the archive view
+    if (currentArchiveEntryName && mediaContainer._archiveData) {
+        currentArchiveEntryName = null;
+        viewerReset();
+        if (window.renderArchiveTable) {
+            window.renderArchiveTable(mediaContainer._archiveData, mediaContainer._archivePath);
+        }
+        return;
+    }
+
     modal.classList.remove('danger-active');
     modal.style.opacity = '0';
     setTimeout(() => {

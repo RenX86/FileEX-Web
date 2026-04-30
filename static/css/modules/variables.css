@@ -62,7 +62,3 @@
     --c-error: #ffb4ab;
     --c-error-container: #93000a;
 }
-
-[data-theme="dark"] body {
-    background-image: none;
-}

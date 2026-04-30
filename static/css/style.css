@@ -1,12 +1,12 @@
 /* Main Stylesheet - Imports Modules */
 
-@import 'modules/variables.css';
-@import 'modules/base.css';
-@import 'modules/layout.css';
-@import 'modules/components.css';
-@import 'modules/cards.css';
-@import 'modules/modal.css';
-@import 'modules/archive.css';
+@import 'modules/variables.css?v=45';
+@import 'modules/base.css?v=45';
+@import 'modules/layout.css?v=45';
+@import 'modules/components.css?v=45';
+@import 'modules/cards.css?v=45';
+@import 'modules/modal.css?v=45';
+@import 'modules/archive.css?v=45';
 
 /* 
    Note: Mobile overrides have been co-located within their respective modules:

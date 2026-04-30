@@ -2,22 +2,36 @@
 
 FileEX is a lightweight, high-performance web-based file explorer designed for local networks. It allows you to browse, preview, and manage your host computer's files from any device (phone, tablet, or another PC) on your Wi-Fi.
 
-Built for speed and simplicity, FileEX avoids heavy frontend frameworks, delivering a "blazing fast" experience through **FastAPI** and **Vanilla JavaScript**.
+Built for speed and simplicity, FileEX avoids heavy frontend frameworks, delivering a "blazing fast" experience through **FastAPI** and **Vanilla JavaScript** wrapped in a sleek **Cyberpunk Aesthetic**.
 
 ---
 
 ## ✨ Key Features
 
+### 🎨 Subtle Cyberpunk UI & Desktop Sidebar
+* **Dark Mode Void:** Deep obsidian backgrounds with sharp electric cyan accents and glassmorphism elements.
+* **Desktop Sidebar:** A fixed navigation sidebar with a dynamically loaded list of your local drives (C:\, D:\, etc.) for instant access, resembling a native file manager.
+* **Storage Dashboard:** A dedicated dashboard view showing drive usage progress bars, free space stats, and quick system utilities (Trash, Clear Recents, Lock Terminal).
+
 ### 🖼️ Real-Time Media Previews
 * **Dynamic Thumbnails:** Instant 100x100 previews for images and videos using **Pillow** and **FFmpeg**.
-* **Media Viewer:** High-performance modal for viewing images and streaming videos directly in the browser.
-* **Touch & Keyboard Support:** Navigate through media in a folder using Arrow keys or touch-swipe gestures.
+* **Plyr Media Engine:** Integrated **Plyr** video and audio player for a modern, 100% offline media playback experience.
+* **Pan & Zoom Controls:** Use your mouse wheel to zoom into images, and click-and-drag to pan around. Keyboard shortcuts (`+`, `-`, `0`) are also supported.
+* **Glassmorphism Toolbar:** Hovering action toolbar for zooming, rotating, and instantly downloading media.
+* **Touch & Keyboard Support:** Navigate through media in a folder using Arrow keys or touch-swipe gestures. Swipe down to dismiss the viewer on mobile devices.
+
+### 📝 Text & Code Previewer
+* **Raw Source View:** Click any code or text file (`.txt`, `.json`, `.py`, `.js`, etc.) to view its raw source code inside a clean `<pre>` block.
+* **Visual Render Mode:** For HTML, SVG, or Markdown files, click the "RENDER PREVIEW" button to view the visual output safely inside a strict `sandbox=""` iframe that blocks all scripts and forms.
 
 ### 📦 Advanced Archive Engine
 * **On-the-Fly Browsing:** Explore contents of `zip`, `7z`, `rar`, and `tar` files without extracting them.
 * **Partial Extraction:** Stream or download a single file (like an image inside a 2GB zip) instantly.
-* **Encrypted Archives:** Full support for password-protected 7z, rar, and zip files.
-* **Gallery Mode:** View a thumbnail gallery of all media contained within an archive.
+* **Live Search:** Instantly filter archive contents using the sticky search bar.
+* **Masonry Gallery:** View a beautiful, responsive multi-column grid of all images and videos inside the archive.
+* **Archive Navigation:** Seamlessly navigate to the "next" or "previous" image/video while inside the archive using UI arrows or keyboard keys.
+* **Path Highlighting & Icons:** Distinct color-coded icons for different file types and faded directory paths for effortless scanning.
+* **Download Archive:** Instantly download the entire archive via a quick-action button in the header.
 
 ### 🗑️ Custom Trash System
 * **Safe Deletion:** Files aren't permanently deleted; they are moved to a local `Trash` folder with detailed metadata.
@@ -25,13 +39,14 @@ Built for speed and simplicity, FileEX avoids heavy frontend frameworks, deliver
 * **Metadata Tracking:** Records original path and deletion timestamp.
 
 ### 🔒 Security First
-* **PIN Authentication:** Secure your file system with a configurable session-based PIN.
+* **Strict Configuration:** No hardcoded secrets. The app refuses to boot without properly configured `SECRET_KEY` and `ACCESS_PIN` environment variables.
+* **Brute-Force Protection:** The `/login` endpoint features IP-based rate limiting to block brute-force PIN guessing.
+* **Path Traversal Blocking:** Advanced path normalization strictly blocks attempts to escape restricted directories, including bypassing via Windows UNC paths (`\\?\`).
+* **Safe Archive Extraction:** Archive streaming uses memory-efficient generators to prevent RAM exhaustion (DoS attacks) when previewing massive files.
 * **Read-Only Mode:** A global toggle to disable all write/delete operations for guest access.
-* **Path Traversal Protection:** Rigorous validation prevents access to system-critical folders or directory traversal attacks.
-* **Restricted Paths:** Hardcoded blocks for sensitive OS directories (e.g., `C:\Windows`, `/etc`).
 
 ### ⚡ Performance Optimized
-* **Infinite Scroll:** Paginated directory listings for fast navigation through folders with thousands of files.
+* **Infinite Scroll:** Paginated directory listings for fast navigation through massive folders.
 * **Low Footprint:** No build tools, no `node_modules` on the frontend, and minimal backend dependencies.
 * **GZip Compression:** All API responses are compressed to save bandwidth on slow Wi-Fi.
 
@@ -40,7 +55,7 @@ Built for speed and simplicity, FileEX avoids heavy frontend frameworks, deliver
 ## 🛠️ Tech Stack
 
 * **Backend:** [FastAPI](https://fastapi.tiangolo.com/) (Python 3.9+), [Uvicorn](https://www.uvicorn.org/), [Pillow](https://python-pillow.org/), [FFmpeg](https://ffmpeg.org/).
-* **Frontend:** Vanilla JavaScript (ES6 Modules), HTML5, CSS3 (Modern Flexbox/Grid).
+* **Frontend:** Vanilla JavaScript (ES6 Modules), HTML5, CSS3 (Modern Flexbox/Grid), Plyr.
 
 ---
 
@@ -67,7 +82,7 @@ pip install -r requirements.txt
 
 # Configure environment
 cp .env.example .env
-# Edit .env to set your SECRET_KEY and ACCESS_PIN
+# Edit .env to set your SECRET_KEY and ACCESS_PIN (Required)
 ```
 
 ### 3. Run Application
@@ -99,7 +114,7 @@ The application will be available at `http://localhost:6979`. You can map your h
 | Variable | Description | Default |
 | :--- | :--- | :--- |
 | `SECRET_KEY` | Key for session encryption (Required). | - |
-| `ACCESS_PIN` | PIN required to access the dashboard. | `1234` |
+| `ACCESS_PIN` | PIN required to access the dashboard (Required). | - |
 | `READ_ONLY` | If `True`, blocks all delete/restore actions. | `True` |
 | `TRASH_DIR` | Path to store deleted files and metadata. | `./Trash` |
 | `DEBUG` | Enables FastAPI debug mode. | `False` |
