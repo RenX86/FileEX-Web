@@ -43,14 +43,22 @@ async def view_file(path: str = Query(...)):
     """
     Stream a file for viewing (e.g., images, videos, PDFs).
     """
+    import mimetypes as mt
     try:
         validate_path(path)
         if not os.path.isfile(path):
             raise HTTPException(status_code=404, detail="File not found")
-        stat = os.stat(path)
-        return FileResponse(
-            path,
-            stat_result=stat,
+            
+        content_type = mt.guess_type(path)[0] or "application/octet-stream"
+        
+        def file_iterator():
+            with open(path, "rb") as f:
+                while chunk := f.read(65536):
+                    yield chunk
+                    
+        return StreamingResponse(
+            file_iterator(), 
+            media_type=content_type,
             headers={"Cache-Control": "public, max-age=3600"}  # Cache 1 hour
         )
     except PermissionError:

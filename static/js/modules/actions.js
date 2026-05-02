@@ -1,10 +1,10 @@
-import { fetchFiles, fetchArchive, deleteItemAPI } from './api.js?v=21';
-import { renderItems, updateBreadcrumbs, renderArchiveTable, renderRecentFiles, listContainer, mediaContainer, modal } from './ui.js?v=21';
-import { openMedia } from './viewer.js?v=21';
-import { ARCHIVE_EXTS } from './config.js?v=21';
-import { escapeHtml, showToast } from './utils.js?v=21';
-import { closeModal } from './viewer.js?v=21';
-import { getRecentFiles, clearRecentFiles as storeClearRecent } from './store.js?v=21';
+import { fetchFiles, fetchArchive, deleteItemAPI } from './api.js?v=28';
+import { renderItems, updateBreadcrumbs, renderArchiveTable, renderRecentFiles, listContainer, mediaContainer, modal } from './ui.js?v=28';
+import { openMedia } from './viewer.js?v=28';
+import { ARCHIVE_EXTS } from './config.js?v=28';
+import { escapeHtml, showToast } from './utils.js?v=28';
+import { closeModal } from './viewer.js?v=28';
+import { getRecentFiles, clearRecentFiles as storeClearRecent } from './store.js?v=28';
 
 // Expose functions to the global window object for inline HTML event handlers
 window.handleItemClick = handleItemClick;
@@ -403,7 +403,7 @@ export async function restoreTrashItem(event, trashId) {
     mediaContainer.innerHTML = '<div class="loading" style="background:var(--c-green); color:#000;">RESTORING...</div>';
 
     try {
-        const { restoreItemAPI } = await import('./api.js?v=21');
+        const { restoreItemAPI } = await import('./api.js?v=29');
         await restoreItemAPI(trashId);
         showToast('✅ Item restored to original location');
         loadTrash(); // Reload trash view
@@ -498,7 +498,7 @@ export async function extractArchive(path, providedPassword = null) {
     mediaContainer.innerHTML = '<div class="loading" style="background:var(--c-cyan); color:#000;">EXTRACTING...</div>';
     
     try {
-        const { extractArchiveAPI } = await import('./api.js?v=26');
+        const { extractArchiveAPI } = await import('./api.js?v=28');
         const pwd = providedPassword || mediaContainer._archivePassword || null;
         await extractArchiveAPI(path, pwd);
         closeModal();

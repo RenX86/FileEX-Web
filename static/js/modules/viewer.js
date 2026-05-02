@@ -1,8 +1,8 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=25';
-import { escapeHtml } from './utils.js?v=25';
-import { mediaContainer, modal } from './ui.js?v=25';
-import { addRecentFile } from './store.js?v=25';
-import { getCurrentItems } from './actions.js?v=25';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=28';
+import { escapeHtml } from './utils.js?v=28';
+import { mediaContainer, modal } from './ui.js?v=28';
+import { addRecentFile } from './store.js?v=28';
+import { getCurrentItems } from './actions.js?v=28';
 
 let currentMediaItem = null;
 let currentArchiveEntryName = null;
