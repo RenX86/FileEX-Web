@@ -441,7 +441,7 @@ window._executePermanentDelete = async function (trashId) {
     mediaContainer.innerHTML = '<div class="loading" style="background:var(--c-pink); color:#000;">DESTROYING...</div>';
 
     try {
-        const { permanentDeleteItemAPI } = await import('./api.js?v=21');
+        const { permanentDeleteItemAPI } = await import('./api.js?v=26');
         await permanentDeleteItemAPI(trashId);
         closeModal();
         showToast('☢️ Item permanently destroyed');
@@ -487,3 +487,39 @@ export async function loadSidebarDrives() {
         drivesContainer.innerHTML = '<div style="padding: 0 14px; color: var(--c-error); font-size: 0.8rem;">Error loading drives</div>';
     }
 }
+
+export async function extractArchive(path, providedPassword = null) {
+    // Determine path to refresh after extraction
+    const parts = path.split(/[/\\]/).filter(p => p);
+    parts.pop();
+    const sep = path.includes('\\') ? '\\' : '/';
+    const parentPath = parts.join(sep) + (parts.length === 1 && parts[0].includes(':') ? sep : '');
+
+    mediaContainer.innerHTML = '<div class="loading" style="background:var(--c-cyan); color:#000;">EXTRACTING...</div>';
+    
+    try {
+        const { extractArchiveAPI } = await import('./api.js?v=26');
+        const pwd = providedPassword || mediaContainer._archivePassword || null;
+        await extractArchiveAPI(path, pwd);
+        closeModal();
+        showToast('📦 Archive extracted successfully');
+        loadPath(parentPath);
+    } catch (error) {
+        if (error.name === 'PasswordRequired') {
+            const pwd = prompt('Enter archive password to extract:');
+            if (pwd !== null) {
+                window.extractArchive(path, pwd);
+            } else {
+                closeModal();
+            }
+            return;
+        }
+        mediaContainer.innerHTML = `
+            <div class="modal-content danger-modal" style="background:var(--card-bg); padding:2rem; text-align:center;">
+                <h2>⚠️ ERROR</h2>
+                <p>${escapeHtml(error.message)}</p>
+                <button class="btn-cancel" onclick="window.closeModal()">CLOSE</button>
+            </div>
+        `;
+    }
+};

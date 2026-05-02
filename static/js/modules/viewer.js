@@ -1,8 +1,8 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=21';
-import { escapeHtml } from './utils.js?v=21';
-import { mediaContainer, modal } from './ui.js?v=21';
-import { addRecentFile } from './store.js?v=21';
-import { getCurrentItems } from './actions.js?v=21';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=25';
+import { escapeHtml } from './utils.js?v=25';
+import { mediaContainer, modal } from './ui.js?v=25';
+import { addRecentFile } from './store.js?v=25';
+import { getCurrentItems } from './actions.js?v=25';
 
 let currentMediaItem = null;
 let currentArchiveEntryName = null;
@@ -182,7 +182,9 @@ export function closeModal() {
     if (currentArchiveEntryName && mediaContainer._archiveData) {
         currentArchiveEntryName = null;
         viewerReset();
-        if (window.renderArchiveTable) {
+        if (mediaContainer._archiveMode === 'gallery' && window.renderArchiveGallery) {
+            window.renderArchiveGallery(mediaContainer._archiveData, mediaContainer._archivePath);
+        } else if (window.renderArchiveTable) {
             window.renderArchiveTable(mediaContainer._archiveData, mediaContainer._archivePath);
         }
         return;

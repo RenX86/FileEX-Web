@@ -1,5 +1,5 @@
-import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, ARCHIVE_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=21';
-import { escapeHtml } from './utils.js?v=21';
+import { API_BASE, IMAGE_EXTS, VIDEO_EXTS, ARCHIVE_EXTS, AUDIO_EXTS, TEXT_EXTS } from './config.js?v=26';
+import { escapeHtml } from './utils.js?v=26';
 
 export const listContainer = document.getElementById('file-list');
 export const breadcrumbContainer = document.getElementById('breadcrumb');
@@ -157,6 +157,7 @@ export function renderArchiveTable(data, archivePath) {
     const pwdStr = mediaContainer._archivePassword ? `&password=${encodeURIComponent(mediaContainer._archivePassword)}` : '';
     const downloadArchiveUrl = `${API_BASE}/download?path=${encodeURIComponent(archivePath)}`;
     const downloadBtn = `<a href="${downloadArchiveUrl}" download="${escapeHtml(data.filename)}" class="archive-mode-btn" style="color:var(--c-primary); border-color:var(--c-primary);" title="Download Entire Archive">↓ DOWNLOAD</a>`;
+    const extractBtn = `<button onclick="window.extractArchive('${escapedPath}')" class="archive-mode-btn" style="color:#fbbf24; border-color:#fbbf24; margin-right:8px;" title="Extract Archive Here">📤 EXTRACT</button>`;
 
     let html = `
         <div class="archive-viewer">
@@ -164,6 +165,7 @@ export function renderArchiveTable(data, archivePath) {
                 <h2>📦 ${escapeHtml(data.filename)}</h2>
                 <div class="archive-header-actions">
                     ${galleryBtn}
+                    ${extractBtn}
                     ${downloadBtn}
                     <span class="archive-stats">${data.total_dirs} folders · ${data.total_files} files</span>
                 </div>
@@ -292,6 +294,7 @@ export function renderArchiveGallery(data, archivePath) {
 
     mediaContainer._archiveData = data;
     mediaContainer._archivePath = archivePath;
+    mediaContainer._archiveMode = 'gallery';
 }
 
 export function renderRecentFiles(recent) {

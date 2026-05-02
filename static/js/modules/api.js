@@ -1,4 +1,4 @@
-import { API_BASE } from './config.js?v=21';
+import { API_BASE } from './config.js?v=26';
 
 export async function fetchFiles(path, skip = 0, limit = 100) {
     let url = path ? `${API_BASE}/list?path=${encodeURIComponent(path)}` : `${API_BASE}/list`;
@@ -72,4 +72,25 @@ export async function permanentDeleteItemAPI(trashId) {
         const err = await response.json();
         throw new Error(err.detail || 'Failed to permanently delete item');
     }
+}
+
+export async function extractArchiveAPI(path, password = null) {
+    let url = `${API_BASE}/archive/extract?path=${encodeURIComponent(path)}`;
+    if (password) {
+        url += `&password=${encodeURIComponent(password)}`;
+    }
+    const response = await fetch(url, {
+        method: 'POST'
+    });
+
+    if (!response.ok) {
+        const err = await response.json();
+        const errorMsg = err.detail || 'Failed to extract archive';
+        const error = new Error(errorMsg);
+        if (response.status === 401 && errorMsg === 'password_required') {
+            error.name = 'PasswordRequired';
+        }
+        throw error;
+    }
+    return await response.json();
 }

@@ -58,6 +58,26 @@ async def view_file(path: str = Query(...)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"An internal error occurred: {str(e)}")
 
+@router.get("/download")
+async def download_file(path: str = Query(...)):
+    """
+    Download a file as an attachment.
+    """
+    try:
+        validate_path(path)
+        if not os.path.isfile(path):
+            raise HTTPException(status_code=404, detail="File not found")
+        stat = os.stat(path)
+        return FileResponse(
+            path,
+            filename=os.path.basename(path),
+            stat_result=stat
+        )
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"An internal error occurred: {str(e)}")
+
 @router.get("/thumbnail")
 async def get_thumbnail(path: str = Query(...)):
     """
@@ -370,6 +390,98 @@ async def view_archive_entry(path: str = Query(...), entry: str = Query(...), pa
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to extract file: {str(e)}")
+
+@router.post("/archive/extract")
+async def extract_archive(path: str = Query(...), password: Optional[str] = Query(None)):
+    """
+    Extract an entire archive into a folder next to it.
+    """
+    if settings.READ_ONLY:
+        raise HTTPException(status_code=405, detail="Extract not allowed in Read-Only mode")
+        
+    try:
+        validate_path(path)
+        if not os.path.isfile(path):
+            raise HTTPException(status_code=404, detail="Archive not found")
+
+        ext = path.split('.')[-1].lower()
+        basename = os.path.basename(path).lower()
+        
+        target_dir = os.path.splitext(path)[0]
+        counter = 1
+        original_target = target_dir
+        while os.path.exists(target_dir):
+            target_dir = f"{original_target}_{counter}"
+            counter += 1
+            
+        os.makedirs(target_dir, exist_ok=True)
+
+        if ext == 'zip':
+            import zipfile
+            if not zipfile.is_zipfile(path):
+                raise HTTPException(status_code=400, detail="Not a valid zip file")
+            try:
+                pwd_bytes = password.encode('utf-8') if password else None
+                with zipfile.ZipFile(path, 'r') as zf:
+                    zf.extractall(path=target_dir, pwd=pwd_bytes)
+            except RuntimeError as e:
+                if 'Bad password' in str(e) or 'password required' in str(e).lower():
+                    raise HTTPException(status_code=401, detail="password_required")
+                raise e
+                
+        elif basename.endswith('.tar.gz') or basename.endswith('.tar.bz2') or ext in ('tar', 'gz', 'bz2'):
+            import tarfile
+            try:
+                with tarfile.open(path, 'r:*') as tf:
+                    # Basic path traversal protection for older Python versions
+                    for member in tf.getmembers():
+                        if member.name.startswith('/') or '..' in member.name:
+                            raise Exception(f"Refusing to extract potentially unsafe tar member: {member.name}")
+                    tf.extractall(path=target_dir)
+            except Exception as e:
+                raise e
+
+        elif ext == '7z':
+             try:
+                 import py7zr
+                 with py7zr.SevenZipFile(path, mode='r', password=password) as z:
+                     if z.needs_password() and not password:
+                         raise py7zr.exceptions.PasswordRequired()
+                     z.extractall(path=target_dir)
+             except (py7zr.exceptions.PasswordRequired, py7zr.exceptions.Bad7zFile):
+                 raise HTTPException(status_code=401, detail="password_required")
+             except Exception as e:
+                 if 'Corrupt' in str(e) or 'LZMAError' in str(type(e)):
+                     raise HTTPException(status_code=401, detail="password_required")
+                 raise e
+
+        elif ext == 'rar':
+             import rarfile
+             rarfile.UNRAR_TOOL = "bsdtar"
+             if not rarfile.is_rarfile(path):
+                 raise HTTPException(status_code=400, detail="Not a valid rar file")
+             try:
+                 with rarfile.RarFile(path, 'r') as rf:
+                     if rf.needs_password():
+                         if not password:
+                             raise rarfile.PasswordRequired()
+                         rf.setpassword(password)
+                     rf.extractall(path=target_dir)
+             except rarfile.PasswordRequired:
+                 raise HTTPException(status_code=401, detail="password_required")
+             except rarfile.BadRarFile:
+                 raise HTTPException(status_code=401, detail="password_required")
+        else:
+             raise HTTPException(status_code=400, detail="Unsupported archive format")
+
+        return {"detail": "Archive extracted successfully", "target_dir": target_dir}
+
+    except PermissionError:
+        raise HTTPException(status_code=403, detail="Permission denied")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to extract archive: {str(e)}")
 
 @router.delete("/delete")
 async def delete_file(path: str = Query(...)):
